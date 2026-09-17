@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Send — root@smsadda:~/send</title>
+<meta name="description" content="Send OTP messages through SMS Adda." />
+<meta name="author" content="Laxman Poudel" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SMS Adda" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+
+<!-- Auth gate — redirect before render -->
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem("smsadda_user");
+    if (!raw) { window.location.replace("/login.html"); return; }
+    var u = JSON.parse(raw);
+    if (!u || !u.phone) {
+      localStorage.removeItem("smsadda_user");
+      window.location.replace("/login.html");
+      return;
+    }
+    var signed = u.signedInAt ? new Date(u.signedInAt).getTime() : 0;
+    var THIRTY = 30 * 24 * 60 * 60 * 1000;
+    if (!signed || Date.now() - signed > THIRTY) {
+      localStorage.removeItem("smsadda_user");
+      window.location.replace("/login.html");
+      return;
+    }
+    window.__smsUser = u;
+  } catch (e) {
+    try { localStorage.removeItem("smsadda_user"); } catch (_) {}
+    window.location.replace("/login.html");
+  }
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root {
+  --bg:        #0a0a0a;
+  --panel:     #0f0f0f;
+  --panel-2:   #131313;
+  --cream:     #F4F1E8;
+  --phosphor:  #DFFF00;
+  --phosphor-2:#c6e600;
+  --orange:    #FF4D00;
+  --orange-2:  #FF8A3D;
+  --green:     #4ade80;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --cyan:      #22d3ee;
+  --dim:       rgba(223,255,0,.5);
+  --dim-2:     rgba(244,241,232,.4);
+  --soft:      #c9c9a8;
+  --line:      rgba(223,255,0,.15);
+  --line-2:    rgba(244,241,232,.1);
+
+  --font: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --ease:     cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+
+  --chrome-h: 40px;
+  --status-h: 28px;
+  --sidebar-w: 320px;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--soft);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+a { color: inherit; text-decoration: none; }
+input { font: inherit; color: inherit; }
+::selection { background: var(--phosphor); color: var(--bg); }
+
+a:focus, button:focus, input:focus { outline: none; }
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--phosphor);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   OS SHELL
+   ========================================================= */
+.os {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* --- Chrome bar --- */
+.os__chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--chrome-h);
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: clamp(12px, 2vw, 20px);
+  font-size: 11px;
+  letter-spacing: .08em;
+  flex-shrink: 0;
+}
+.chrome__dots { display: flex; gap: 6px; flex-shrink: 0; }
+.chrome__dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--line); }
+.chrome__dot--r { background: var(--orange); }
+.chrome__dot--y { background: var(--amber); }
+.chrome__dot--g { background: var(--green); }
+
+.chrome__title {
+  flex: 1;
+  text-align: center;
+  color: var(--phosphor);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.chrome__title .user { color: var(--phosphor); }
+.chrome__title .sep { color: var(--dim); }
+.chrome__title .path { color: var(--orange-2); }
+.chrome__title .dim { color: var(--dim); }
+
+.chrome__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__status::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+.chrome__back {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  transition: all .2s var(--ease);
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chrome__back:hover {
+  color: var(--phosphor);
+  border-color: var(--line);
+  background: rgba(223,255,0,.04);
+}
+@media (max-width: 720px) {
+  .chrome__status { display: none; }
+}
+@media (max-width: 420px) {
+  .chrome__title { font-size: 10px; }
+  .chrome__title .dim { display: none; }
+  .chrome__back { padding: 4px 8px; }
+}
+
+/* --- Layout --- */
+.os__body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.os__sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.os__sidebar::-webkit-scrollbar { width: 5px; }
+.os__sidebar::-webkit-scrollbar-thumb { background: var(--line); }
+
+.os__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  html, body { height: 100%; overflow: hidden; }
+  .os { height: 100dvh; }
+}
+@media (max-width: 1023px) {
+  .os__body { flex-direction: column; }
+  .os__sidebar {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow-y: visible;
+    max-height: none;
+  }
+  .os__main {
+    min-height: 60vh;
+  }
+}
+
+/* --- Status bar --- */
+.os__status {
+  flex-shrink: 0;
+  height: var(--status-h);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding-inline: clamp(12px, 2vw, 20px);
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  z-index: 100;
+}
+.status__mode {
+  background: var(--phosphor);
+  color: var(--bg);
+  padding: 2px 8px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+.status__mode.sending { background: var(--orange); color: var(--bg); }
+.status__mode.done { background: var(--green); color: var(--bg); }
+.status__mode.error { background: var(--red); color: var(--bg); }
+.status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.status__item::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .6;
+}
+.status__spacer { flex: 1; min-width: 0; }
+@media (max-width: 640px) {
+  .status__hide-sm { display: none; }
+}
+
+/* =========================================================
+   SIDEBAR — FORM
+   ========================================================= */
+.side-pad {
+  padding: 20px clamp(16px, 2vw, 22px) 24px;
+}
+@media (max-width: 1023px) {
+  .side-pad { padding: 20px clamp(14px, 4vw, 24px) 24px; }
+}
+
+.side-group {
+  margin-bottom: 20px;
+}
+.side-group:last-child { margin-bottom: 0; }
+
+.side-label {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.side-label::before {
+  content: "$";
+  color: var(--phosphor);
+  font-weight: 600;
+}
+.side-label .comment {
+  text-transform: none;
+  letter-spacing: .04em;
+  color: var(--dim-2);
+  font-weight: 400;
+  margin-left: auto;
+}
+
+/* Segmented control */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  border-radius: 0;
+  min-height: 40px;
+}
+.seg__opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  color: var(--dim);
+  border-right: 1px solid var(--line);
+  transition: background .15s var(--ease), color .15s var(--ease);
+  text-align: center;
+  position: relative;
+  min-height: 40px;
+}
+.seg__opt:last-child { border-right: 0; }
+.seg__opt input { position: absolute; opacity: 0; pointer-events: none; }
+.seg__opt.checked {
+  background: var(--phosphor);
+  color: var(--bg);
+  font-weight: 600;
+}
+.seg__opt:hover:not(.checked) {
+  color: var(--phosphor);
+  background: rgba(223,255,0,.04);
+}
+
+/* Phone input line */
+.phone-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  padding: 0 12px;
+  min-height: 44px;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.phone-line:focus-within {
+  border-color: var(--phosphor);
+  box-shadow: 0 0 0 1px var(--phosphor) inset;
+}
+.phone-line.error { border-color: var(--orange); }
+
+.phone-line__prompt {
+  color: var(--phosphor);
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.phone-line__prefix {
+  color: var(--orange-2);
+  font-weight: 500;
+  font-size: 12px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.phone-line__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 10px 0;
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 14px;
+  letter-spacing: .06em;
+  caret-color: var(--phosphor);
+  -webkit-text-fill-color: var(--phosphor);
+  font-variant-numeric: tabular-nums;
+  box-shadow: none;
+}
+.phone-line__input:focus,
+.phone-line__input:focus-visible {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.phone-line__input::placeholder {
+  color: var(--dim-2);
+  -webkit-text-fill-color: var(--dim-2);
+}
+.phone-line__input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--panel-2) inset !important;
+  -webkit-text-fill-color: var(--phosphor) !important;
+  caret-color: var(--phosphor) !important;
+}
+@supports (-webkit-touch-callout: none) {
+  .phone-line__input { font-size: 16px; }
+}
+
+.field__error {
+  display: none;
+  margin-top: 6px;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--orange);
+}
+.field__error::before {
+  content: "!! ";
+  font-weight: 700;
+}
+.field__error.show { display: block; }
+
+/* Count stepper */
+.stepper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  min-height: 44px;
+}
+.stepper__btn {
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  font-size: 16px;
+  transition: all .15s var(--ease);
+  flex-shrink: 0;
+}
+.stepper__btn:hover:not(:disabled) {
+  background: var(--phosphor);
+  color: var(--bg);
+}
+.stepper__btn:disabled { opacity: .25; cursor: not-allowed; }
+.stepper__val {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--phosphor);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bulk list */
+.bulk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.bulk-list::-webkit-scrollbar { width: 4px; }
+.bulk-list::-webkit-scrollbar-thumb { background: var(--line); }
+
+.bulk-row {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+.bulk-row .phone-line { flex: 1; min-width: 0; padding: 0 10px; min-height: 40px; }
+.bulk-row .phone-line__input { padding: 8px 0; font-size: 13px; }
+.bulk-row .phone-line__prompt { font-size: 11px; }
+.bulk-row__del {
+  width: 40px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all .15s var(--ease);
+}
+.bulk-row__del:hover:not(:disabled) {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--bg);
+}
+.bulk-row__del:disabled { opacity: .35; cursor: not-allowed; }
+.bulk-row.invalid .phone-line { border-color: var(--orange); }
+
+.bulk-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+.bulk-actions .btn-term--full { grid-column: 1 / -1; }
+
+.bulk-count {
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--dim);
+  margin-top: 8px;
+}
+.bulk-count strong { color: var(--phosphor); font-weight: 500; }
+
+/* File upload status */
+.file-status {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 10px;
+  letter-spacing: .04em;
+  line-height: 1.55;
+  background: rgba(74,222,128,.05);
+  border: 1px solid rgba(74,222,128,.25);
+  color: var(--green);
+}
+.file-status.show { display: block; animation: fadeIn .25s var(--ease-out); }
+.file-status.error {
+  background: rgba(248,113,113,.05);
+  border-color: rgba(248,113,113,.25);
+  color: var(--red);
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.file-input-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0; pointer-events: none;
+}
+
+/* Gateway picker */
+.gw-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+.gw-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: all .15s var(--ease);
+  text-align: center;
+  min-height: 40px;
+  position: relative;
+}
+.gw-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.gw-opt.checked {
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+  color: var(--bg);
+  font-weight: 600;
+}
+.gw-opt:hover:not(.checked) {
+  color: var(--phosphor);
+  border-color: var(--phosphor);
+}
+
+/* Terms */
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  transition: border-color .2s var(--ease);
+}
+.terms input { position: absolute; opacity: 0; pointer-events: none; }
+.terms__box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all .15s var(--ease);
+}
+.terms__box svg {
+  width: 11px; height: 11px;
+  stroke: currentColor;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0;
+  transform: scale(.5);
+  transition: opacity .15s, transform .15s var(--ease-out);
+}
+.terms input:checked + .terms__box {
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+  color: var(--bg);
+}
+.terms input:checked + .terms__box svg { opacity: 1; transform: scale(1); }
+.terms.error { border-color: var(--orange); }
+.terms__text {
+  font-size: 10.5px;
+  letter-spacing: .02em;
+  line-height: 1.55;
+  color: var(--dim);
+}
+.terms__text a {
+  color: var(--phosphor);
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s var(--ease);
+}
+.terms__text a:hover { border-bottom-color: var(--phosphor); }
+
+/* Terminal button */
+.btn-term {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: all .15s var(--ease);
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+.btn-term:hover:not(:disabled) {
+  color: var(--phosphor);
+  border-color: var(--phosphor);
+  background: rgba(223,255,0,.04);
+}
+.btn-term:disabled { opacity: .35; cursor: not-allowed; }
+.btn-term--primary {
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+  color: var(--bg);
+  font-weight: 600;
+}
+.btn-term--primary:hover:not(:disabled) {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(223,255,0,.35);
+}
+.btn-term--sm {
+  padding: 8px 12px;
+  min-height: 38px;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+/* =========================================================
+   TERMINAL
+   ========================================================= */
+.terminal {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #080808;
+  overflow: hidden;
+  position: relative;
+}
+
+.term__bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: .1em;
+}
+.term__bar-dots { display: flex; gap: 5px; flex-shrink: 0; }
+.term__bar-dot { width: 9px; height: 9px; border-radius: 50%; }
+.term__bar-dot--r { background: var(--orange); }
+.term__bar-dot--y { background: var(--amber); }
+.term__bar-dot--g { background: var(--green); }
+.term__bar-title {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.term__bar-title b { color: var(--phosphor); font-weight: 500; }
+.term__bar-title .dim { color: var(--dim-2); }
+.term__bar-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.term__bar-stat::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: all .2s var(--ease);
+}
+.term__bar-stat.idle::before { background: var(--dim); }
+.term__bar-stat.running { color: var(--orange); }
+.term__bar-stat.running::before { background: var(--orange); animation: pulse-soft 1s infinite; }
+.term__bar-stat.done { color: var(--green); }
+.term__bar-stat.done::before { background: var(--green); }
+.term__bar-stat.error { color: var(--red); }
+.term__bar-stat.error::before { background: var(--red); }
+@media (max-width: 480px) {
+  .term__bar-stat span.label { display: none; }
+}
+
+.term__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px clamp(14px, 2vw, 24px) 24px;
+  font-size: clamp(11.5px, 1.1vw, 13px);
+  line-height: 1.65;
+  color: var(--soft);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  font-variant-ligatures: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.term__body::-webkit-scrollbar { width: 6px; }
+.term__body::-webkit-scrollbar-track { background: transparent; }
+.term__body::-webkit-scrollbar-thumb { background: var(--line); }
+
+.term__body .cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+.term__body .cmd .ps1 { color: var(--phosphor); font-weight: 600; flex-shrink: 0; }
+.term__body .cmd .arg { color: var(--soft); }
+.term__body .cmd .path { color: var(--orange-2); }
+.term__body .cmd .comment { color: var(--dim-2); font-size: 11px; }
+
+.term__body .logo {
+  margin: 0 0 16px;
+  font-family: var(--font);
+  font-size: clamp(6.5px, 1.3vw, 10px);
+  line-height: 1.15;
+  color: var(--phosphor);
+  font-weight: 700;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+  text-shadow: 0 0 10px rgba(223,255,0,.25);
+}
+.term__body .logo::-webkit-scrollbar { display: none; }
+
+/* Log lines */
+.log {
+  margin: 0 0 8px;
+}
+.log__line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: inherit;
+  line-height: 1.65;
+  animation: lineIn .15s var(--ease-out);
+  padding: 1px 0;
+}
+@keyframes lineIn {
+  from { opacity: 0; transform: translateX(-2px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.log__line .ts {
+  color: var(--dim-2);
+  margin-right: 8px;
+  font-size: .9em;
+  user-select: none;
+}
+.log__line .msg { color: var(--soft); }
+.log__line .msg .dim { color: var(--dim-2); }
+
+.log__line--stage .msg { color: var(--orange-2); font-weight: 500; }
+.log__line--stage .msg::before { content: "▸ "; color: var(--orange); }
+
+.log__line--info .msg { color: var(--soft); }
+.log__line--info .msg::before { content: "  "; }
+
+.log__line--fn .msg { color: var(--cyan); }
+.log__line--fn .msg::before { content: "> "; color: var(--cyan); font-weight: 600; }
+
+.log__line--ret .msg { color: var(--soft); }
+.log__line--ret .msg::before { content: "← "; color: var(--dim); }
+
+.log__line--ok .msg { color: var(--green); }
+.log__line--ok .msg::before { content: "✓ "; font-weight: 700; }
+
+.log__line--err .msg { color: var(--red); }
+.log__line--err .msg::before { content: "✗ "; font-weight: 700; }
+
+.log__line--warn .msg { color: var(--amber); }
+.log__line--warn .msg::before { content: "! "; font-weight: 700; }
+
+.log__line--dim .msg { color: var(--dim-2); }
+.log__line--dim .msg::before { content: "  "; }
+
+.log__line--banner .msg { color: var(--phosphor); font-weight: 700; }
+.log__line--banner .msg::before { content: "$ "; color: var(--dim); }
+
+.log__line--hr .msg {
+  color: var(--dim-2);
+  display: block;
+}
+.log__line--hr .msg::before { content: ""; }
+
+.log__line .kv {
+  color: var(--dim);
+  display: inline-block;
+  min-width: 22ch;
+}
+.log__line .val { color: var(--phosphor); }
+.log__line .kv-ok { color: var(--green); }
+.log__line .kv-err { color: var(--red); }
+
+/* Blinking cursor at end */
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--phosphor);
+  margin-left: 3px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Live stat strip inside terminal */
+.live-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 10.5px;
+  letter-spacing: .08em;
+}
+.live-stats__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.live-stats__val {
+  color: var(--phosphor);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.live-stats__val.ok { color: var(--green); }
+.live-stats__val.err { color: var(--red); }
+
+/* =========================================================
+   MODAL — logout
+   ========================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal.open { display: flex; }
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn .2s var(--ease-out);
+}
+
+.modal__card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 24px;
+  font-family: var(--font);
+  animation: cardPop .3s var(--ease-out);
+  box-shadow: 0 0 60px rgba(223,255,0,.05);
+}
+@keyframes cardPop {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal__cmd {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+}
+.modal__cmd .ps1 { color: var(--phosphor); font-weight: 600; }
+.modal__cmd .arg { color: var(--orange); }
+
+.modal__icon {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+.modal__icon svg {
+  width: 24px; height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modal__title {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--cream);
+  letter-spacing: .02em;
+  margin: 0 0 8px;
+}
+.modal__title::before { content: "> "; color: var(--dim); }
+
+.modal__desc {
+  font-size: 11.5px;
+  color: var(--dim);
+  line-height: 1.6;
+  margin: 0 0 22px;
+}
+
+.modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.modal__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: transparent;
+  transition: all .15s var(--ease);
+  cursor: pointer;
+}
+.modal__btn:hover {
+  color: var(--phosphor);
+  border-color: var(--phosphor);
+  background: rgba(223,255,0,.04);
+}
+.modal__btn--danger {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--bg);
+}
+.modal__btn--danger:hover {
+  background: #e64500;
+  border-color: #e64500;
+  color: var(--bg);
+}
+
+/* =========================================================
+   SCANLINE
+   ========================================================= */
+.os::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(223,255,0,.015) 0px,
+    rgba(223,255,0,.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 9998;
+  mix-blend-mode: screen;
+  opacity: .5;
+}
+@media (prefers-reduced-motion: reduce), (max-width: 480px) {
+  .os::before { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .term__body { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="os">
+
+  <!-- ============================ CHROME BAR ============================ -->
+  <header class="os__chrome">
+    <div class="chrome__dots" aria-hidden="true">
+      <span class="chrome__dot chrome__dot--r"></span>
+      <span class="chrome__dot chrome__dot--y"></span>
+      <span class="chrome__dot chrome__dot--g"></span>
+    </div>
+    <div class="chrome__title">
+      <span class="user">root@smsadda</span><span class="sep">:</span><span class="path">~/send</span>
+      <span class="dim"> — dispatch</span>
+    </div>
+    <div class="chrome__status" aria-hidden="true">online</div>
+    <button type="button" class="chrome__back" id="logoutBtn">logout ←</button>
+  </header>
+
+  <!-- ============================ BODY ============================ -->
+  <div class="os__body">
+
+    <!-- ============ SIDEBAR (form) ============ -->
+    <aside class="os__sidebar" aria-label="Send controls">
+      <div class="side-pad">
+
+        <form id="sendForm" novalidate autocomplete="on">
+
+          <!-- Send mode -->
+          <div class="side-group">
+            <div class="side-label">mode <span class="comment">// send</span></div>
+            <div class="seg" role="radiogroup" aria-label="Send mode">
+              <label class="seg__opt checked" data-mode="single">
+                <input type="radio" name="sendMode" value="single" checked />
+                <span>single</span>
+              </label>
+              <label class="seg__opt" data-mode="bulk">
+                <input type="radio" name="sendMode" value="bulk" />
+                <span>bulk</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Single phone -->
+          <div id="singlePane" class="side-group">
+            <div class="side-label">phone <span class="comment">// +977</span></div>
+            <div class="phone-line" id="phoneRow">
+              <span class="phone-line__prompt">&gt;</span>
+              <span class="phone-line__prefix">+977</span>
+              <input
+                type="tel"
+                id="phone"
+                name="smsadda_send_phone"
+                class="phone-line__input"
+                placeholder="98XXXXXXXX"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                maxlength="10"
+              />
+            </div>
+            <p class="field__error" id="phoneError">invalid — must be 10 digits starting with 98 or 97</p>
+          </div>
+
+          <!-- Bulk pane -->
+          <div id="bulkPane" class="side-group" hidden>
+            <div class="side-label">bulk <span class="comment">// one per line</span></div>
+            <div class="bulk-list" id="numbersList"></div>
+            <div class="bulk-actions">
+              <button type="button" class="btn-term btn-term--sm" id="addNumberBtn">+ add</button>
+              <button type="button" class="btn-term btn-term--sm" id="clearNumbersBtn">clear</button>
+              <button type="button" class="btn-term btn-term--sm btn-term--full" id="uploadBtn">
+                upload .txt (one number per line)
+              </button>
+              <input type="file" id="fileInput" class="file-input-hidden" accept=".txt,text/plain" />
+            </div>
+            <p class="bulk-count" id="numCount">0 numbers · <strong>0 valid</strong> · max 50</p>
+            <div class="file-status" id="fileStatus"></div>
+          </div>
+
+          <!-- Count -->
+          <div class="side-group">
+            <div class="side-label">count <span class="comment" id="countComment">// msgs per number</span></div>
+            <div class="stepper" id="countWrap">
+              <button type="button" class="stepper__btn" id="countMinus" aria-label="Decrease">−</button>
+              <div class="stepper__val" id="countVal">1</div>
+              <button type="button" class="stepper__btn" id="countPlus" aria-label="Increase">+</button>
+            </div>
+          </div>
+
+          <!-- Gateway mode -->
+          <div class="side-group">
+            <div class="side-label">gateway <span class="comment">// route</span></div>
+            <div class="seg" role="radiogroup" aria-label="Gateway selection">
+              <label class="seg__opt checked" data-gw="auto">
+                <input type="radio" name="gwMode" value="auto" checked />
+                <span>auto</span>
+              </label>
+              <label class="seg__opt" data-gw="manual">
+                <input type="radio" name="gwMode" value="manual" />
+                <span>manual</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Manual picker (hidden in auto) -->
+          <div class="side-group" id="gwField" hidden>
+            <div class="side-label">pick gateways <span class="comment">// order shown</span></div>
+            <div class="gw-picker" id="gwPicker">
+              <label class="gw-opt"><input type="checkbox" value="clamphook" /><span>clamphook</span></label>
+              <label class="gw-opt"><input type="checkbox" value="ambition" /><span>ambition</span></label>
+              <label class="gw-opt"><input type="checkbox" value="merodoctor" /><span>merodoctor</span></label>
+              <label class="gw-opt"><input type="checkbox" value="collegeinfo" /><span>collegeinfo</span></label>
+              <label class="gw-opt"><input type="checkbox" value="pariksha" /><span>pariksha</span></label>
+              <label class="gw-opt"><input type="checkbox" value="quickconnect" /><span>quickconnect</span></label>
+            </div>
+            <p class="field__error" id="gwError">select at least one gateway</p>
+          </div>
+
+          <!-- Terms -->
+          <div class="side-group">
+            <label class="terms" id="termsCheck" for="terms">
+              <input type="checkbox" id="terms" />
+              <span class="terms__box" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="terms__text">
+                I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms</a>
+                and <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.
+              </span>
+            </label>
+            <p class="field__error" id="termsError">must agree to continue</p>
+          </div>
+
+          <!-- Send -->
+          <div class="side-group">
+            <button type="submit" class="btn-term btn-term--primary" id="sendBtn">
+              <span id="sendBtnLabel">dispatch otp</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </aside>
+
+    <!-- ============ MAIN (terminal) ============ -->
+    <main class="os__main">
+      <div class="terminal">
+        <div class="term__bar">
+          <div class="term__bar-dots" aria-hidden="true">
+            <span class="term__bar-dot term__bar-dot--r"></span>
+            <span class="term__bar-dot term__bar-dot--y"></span>
+            <span class="term__bar-dot term__bar-dot--g"></span>
+          </div>
+          <div class="term__bar-title">
+            <b>trace</b> root@smsadda.vercel.app <span class="dim">— /var/log/send</span>
+          </div>
+          <div class="term__bar-stat idle" id="termStat">
+            <span class="label">idle</span>
+          </div>
+        </div>
+        <div class="term__body" id="termBody" role="log" aria-live="polite">
+          <!-- log lines appended here -->
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ============================ STATUS BAR ============================ -->
+  <footer class="os__status" aria-label="Status">
+    <span class="status__mode" id="statusMode">NORMAL</span>
+    <span class="status__item">~/send</span>
+    <span class="status__item status__hide-sm" id="statusUser">—</span>
+    <span class="status__spacer"></span>
+    <span class="status__item status__hide-sm" id="statusOK">ok 0</span>
+    <span class="status__item status__hide-sm" id="statusFail">fail 0</span>
+    <span class="status__item" id="statusState">ready</span>
+  </footer>
+
+</div>
+
+<!-- ============================ LOGOUT MODAL ============================ -->
+<div class="modal" id="logoutModal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+  <div class="modal__backdrop" id="logoutBackdrop"></div>
+  <div class="modal__card">
+    <div class="modal__cmd">
+      <span class="ps1">root@smsadda:~$</span>
+      <span class="arg">exit</span>
+      <span style="color:var(--dim-2)">// confirm</span>
+    </div>
+    <div class="modal__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </div>
+    <h2 class="modal__title" id="logoutTitle">Log out?</h2>
+    <p class="modal__desc">// session will be cleared · you'll need to sign in again</p>
+    <div class="modal__actions">
+      <button type="button" class="modal__btn" id="cancelLogout">cancel</button>
+      <button type="button" class="modal__btn modal__btn--danger" id="confirmLogout">log out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     CONFIG
+     ========================================================= */
+  var WORKER_URL = "https://smsbomber.ethical-laxman.workers.dev/";
+  var MAX_BULK = 50;
+  var MAX_COUNT_SINGLE = 10;
+  var MAX_COUNT_BULK = 5;
+  var GATEWAY_IDS = ["clamphook","ambition","merodoctor","collegeinfo","pariksha","quickconnect"];
+  var GATEWAY_LABELS = {
+    clamphook: "ClampHook",
+    ambition: "Ambition Guru",
+    merodoctor: "MeroDoctor",
+    collegeinfo: "College Info",
+    pariksha: "Pariksha",
+    quickconnect: "QuickConnect"
+  };
+
+  /* =========================================================
+     DOM
+     ========================================================= */
+  var form            = document.getElementById("sendForm");
+  var singlePane      = document.getElementById("singlePane");
+  var bulkPane        = document.getElementById("bulkPane");
+  var phoneInput      = document.getElementById("phone");
+  var phoneRow        = document.getElementById("phoneRow");
+  var phoneError      = document.getElementById("phoneError");
+
+  var numbersList     = document.getElementById("numbersList");
+  var addNumberBtn    = document.getElementById("addNumberBtn");
+  var clearNumbersBtn = document.getElementById("clearNumbersBtn");
+  var uploadBtn       = document.getElementById("uploadBtn");
+  var fileInput       = document.getElementById("fileInput");
+  var fileStatus      = document.getElementById("fileStatus");
+  var numCount        = document.getElementById("numCount");
+
+  var countMinus      = document.getElementById("countMinus");
+  var countPlus       = document.getElementById("countPlus");
+  var countVal        = document.getElementById("countVal");
+  var countComment    = document.getElementById("countComment");
+
+  var gwField         = document.getElementById("gwField");
+  var gwPicker        = document.getElementById("gwPicker");
+  var gwError         = document.getElementById("gwError");
+
+  var terms           = document.getElementById("terms");
+  var termsCheck      = document.getElementById("termsCheck");
+  var termsError      = document.getElementById("termsError");
+
+  var sendBtn         = document.getElementById("sendBtn");
+  var sendBtnLabel    = document.getElementById("sendBtnLabel");
+
+  var termBody        = document.getElementById("termBody");
+  var termStat        = document.getElementById("termStat");
+
+  var statusMode      = document.getElementById("statusMode");
+  var statusUser      = document.getElementById("statusUser");
+  var statusOK        = document.getElementById("statusOK");
+  var statusFail      = document.getElementById("statusFail");
+  var statusState     = document.getElementById("statusState");
+
+  /* Logout modal */
+  var logoutModal     = document.getElementById("logoutModal");
+  var logoutBtn       = document.getElementById("logoutBtn");
+  var cancelLogout    = document.getElementById("cancelLogout");
+  var confirmLogout   = document.getElementById("confirmLogout");
+  var logoutBackdrop  = document.getElementById("logoutBackdrop");
+
+  /* =========================================================
+     STATE
+     ========================================================= */
+  var state = {
+    sendMode: "single",
+    gwMode: "auto",
+    count: 1,
+    isSending: false,
+    stats: { ok: 0, fail: 0, totalMs: 0, responses: [] }
+  };
+  var bulkNumbers = [];
+
+  /* =========================================================
+     HELPERS
+     ========================================================= */
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function isValidNepaliPhone(v) { return /^(98|97)\d{8}$/.test(v); }
+  function pad(n, w) { n = String(n); while (n.length < w) n = "0" + n; return n; }
+
+  function nowStamp() {
+    var d = new Date();
+    return pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2) + ":" + pad(d.getSeconds(), 2) +
+           "." + pad(d.getMilliseconds(), 3);
+  }
+
+  function logLine(text, kind, opts) {
+    var line = document.createElement("div");
+    line.className = "log__line" + (kind ? " log__line--" + kind : " log__line--info");
+    var tsSpan = document.createElement("span");
+    tsSpan.className = "ts";
+    tsSpan.textContent = "[" + nowStamp() + "]";
+    var msgSpan = document.createElement("span");
+    msgSpan.className = "msg";
+    if (opts && opts.html) {
+      msgSpan.innerHTML = text;
+    } else {
+      msgSpan.textContent = text;
+    }
+    line.appendChild(tsSpan);
+    line.appendChild(msgSpan);
+    termBody.appendChild(line);
+    // Auto-scroll to bottom
+    termBody.scrollTop = termBody.scrollHeight;
+    return line;
+  }
+
+  function clearTerm() {
+    termBody.innerHTML = "";
+  }
+
+  function hr() {
+    var line = document.createElement("div");
+    line.className = "log__line log__line--hr";
+    var tsSpan = document.createElement("span");
+    tsSpan.className = "ts";
+    tsSpan.textContent = "          ";
+    var msgSpan = document.createElement("span");
+    msgSpan.className = "msg";
+    msgSpan.textContent = "───────────────────────────────────────────────────────────";
+    line.appendChild(tsSpan);
+    line.appendChild(msgSpan);
+    termBody.appendChild(line);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function banner(text) {
+    var line = document.createElement("div");
+    line.className = "log__line log__line--banner";
+    var tsSpan = document.createElement("span");
+    tsSpan.className = "ts";
+    tsSpan.textContent = "[" + nowStamp() + "]";
+    var msgSpan = document.createElement("span");
+    msgSpan.className = "msg";
+    msgSpan.textContent = text;
+    line.appendChild(tsSpan);
+    line.appendChild(msgSpan);
+    termBody.appendChild(line);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function logLogo() {
+    var pre = document.createElement("pre");
+    pre.className = "logo";
+    pre.textContent =
+      "   ███████╗███╗   ███╗███████╗     █████╗ ██████╗ ██████╗  █████╗ \n" +
+      "   ██╔════╝████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗\n" +
+      "   ███████╗██╔████╔██║███████╗    ███████║██║  ██║██║  ██║███████║\n" +
+      "   ╚════██║██║╚██╔╝██║╚════██║    ██╔══██║██║  ██║██║  ██║██╔══██║\n" +
+      "   ███████║██║ ╚═╝ ██║███████║    ██║  ██║██████╔╝██████╔╝██║  ██║\n" +
+      "   ╚══════╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝";
+    termBody.appendChild(pre);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function showWelcome() {
+    clearTerm();
+    logLogo();
+    logLine("welcome, " + (window.__smsUser && window.__smsUser.phone ? window.__smsUser.phone : "user"), "info");
+    logLine("worker: " + WORKER_URL, "dim");
+    logLine("status: ready · awaiting dispatch", "ok");
+    logLine("", "dim");
+    logLine("use the controls on the left to configure and send.", "dim");
+    setTermStat("idle", "idle");
+    setStatusMode("NORMAL", "ready");
+  }
+
+  function setTermStat(kind, text) {
+    termStat.className = "term__bar-stat " + (kind || "idle");
+    var label = termStat.querySelector(".label");
+    if (label) label.textContent = text;
+  }
+
+  function setStatusMode(mode, stateText) {
+    statusMode.className = "status__mode";
+    var m = (mode || "").toLowerCase();
+    if (m === "sending") statusMode.classList.add("sending");
+    else if (m === "done") statusMode.classList.add("done");
+    else if (m === "error") statusMode.classList.add("error");
+    statusMode.textContent = mode || "NORMAL";
+    if (stateText) statusState.textContent = stateText;
+  }
+
+  /* =========================================================
+     LOGOUT MODAL
+     ========================================================= */
+  function openLogoutModal() {
+    logoutModal.classList.add("open");
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { confirmLogout.focus(); }, 50);
+  }
+  function closeLogoutModal() {
+    logoutModal.classList.remove("open");
+    document.body.style.overflow = "";
+    logoutBtn.focus();
+  }
+  logoutBtn.addEventListener("click", openLogoutModal);
+  cancelLogout.addEventListener("click", closeLogoutModal);
+  logoutBackdrop.addEventListener("click", closeLogoutModal);
+  confirmLogout.addEventListener("click", function () {
+    try { localStorage.removeItem("smsadda_user"); } catch (e) {}
+    window.location.replace("/login.html");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && logoutModal.classList.contains("open")) closeLogoutModal();
+  });
+
+  /* =========================================================
+     MODE TOGGLES
+     ========================================================= */
+  function setSendMode(val) {
+    if (val === state.sendMode) return;
+    state.sendMode = val;
+    document.querySelectorAll('[data-mode]').forEach(function (l) {
+      var isThis = l.getAttribute("data-mode") === val;
+      l.classList.toggle("checked", isThis);
+      var inp = l.querySelector("input");
+      if (inp) inp.checked = isThis;
+    });
+    singlePane.hidden = (val !== "single");
+    bulkPane.hidden = (val !== "bulk");
+    if (val === "bulk") syncBulkFromDOM();
+    var cap = (val === "bulk") ? MAX_COUNT_BULK : MAX_COUNT_SINGLE;
+    if (state.count > cap) state.count = cap;
+    updateCount();
+    updateNumCount();
+  }
+  document.querySelectorAll('[data-mode]').forEach(function (label) {
+    label.addEventListener("click", function () {
+      setSendMode(label.getAttribute("data-mode"));
+    });
+  });
+
+  function setGatewayMode(val) {
+    state.gwMode = val;
+    document.querySelectorAll('[data-gw]').forEach(function (l) {
+      var isThis = l.getAttribute("data-gw") === val;
+      l.classList.toggle("checked", isThis);
+      var inp = l.querySelector("input");
+      if (inp) inp.checked = isThis;
+    });
+    if (val === "auto") {
+      gwField.hidden = true;
+      gwError.classList.remove("show");
+      gwPicker.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+        cb.checked = false;
+        cb.closest(".gw-opt").classList.remove("checked");
+      });
+    } else {
+      gwField.hidden = false;
+    }
+  }
+  document.querySelectorAll('[data-gw]').forEach(function (label) {
+    label.addEventListener("click", function () {
+      setGatewayMode(label.getAttribute("data-gw"));
+    });
+  });
+
+  gwPicker.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    cb.addEventListener("change", function () {
+      cb.closest(".gw-opt").classList.toggle("checked", cb.checked);
+      var any = gwPicker.querySelectorAll('input:checked').length > 0;
+      gwError.classList.toggle("show", !any);
+    });
+  });
+
+  /* =========================================================
+     BULK
+     ========================================================= */
+  function createNumberRow(value) {
+    var row = document.createElement("div");
+    row.className = "bulk-row";
+    row.innerHTML =
+      '<div class="phone-line">' +
+        '<span class="phone-line__prompt">&gt;</span>' +
+        '<input type="tel" class="phone-line__input" placeholder="98XXXXXXXX" inputmode="numeric" pattern="[0-9]*" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" />' +
+      '</div>' +
+      '<button type="button" class="bulk-row__del" aria-label="Remove">×</button>';
+    var input = row.querySelector("input");
+    var del = row.querySelector(".bulk-row__del");
+    input.value = value || "";
+    input.addEventListener("input", function () {
+      this.value = this.value.replace(/\D/g, "").slice(0, 10);
+      row.classList.toggle("invalid", this.value.length === 10 && !isValidNepaliPhone(this.value));
+      syncBulkFromDOM();
+    });
+    input.addEventListener("keydown", function (e) {
+      if (["e","E","+","-",".",","].indexOf(e.key) !== -1) e.preventDefault();
+    });
+    del.addEventListener("click", function () {
+      row.remove();
+      syncBulkFromDOM();
+    });
+    numbersList.appendChild(row);
+    return row;
+  }
+
+  function syncBulkFromDOM() {
+    bulkNumbers = Array.prototype.slice.call(numbersList.querySelectorAll('input[type="tel"]'))
+      .map(function (i) { return i.value.replace(/\D/g, ""); }).filter(Boolean);
+    updateNumCount();
+  }
+
+  function updateNumCount() {
+    var total = numbersList.querySelectorAll(".bulk-row").length;
+    var valid = bulkNumbers.filter(isValidNepaliPhone).length;
+    numCount.innerHTML = total + " numbers · <strong>" + valid + " valid</strong> · max " + MAX_BULK;
+    clearNumbersBtn.disabled = total === 0 || state.isSending;
+    addNumberBtn.disabled = total >= MAX_BULK || state.isSending;
+    uploadBtn.disabled = total >= MAX_BULK || state.isSending;
+  }
+
+  addNumberBtn.addEventListener("click", function () {
+    if (numbersList.querySelectorAll(".bulk-row").length >= MAX_BULK) return;
+    var row = createNumberRow("");
+    row.querySelector("input").focus();
+    syncBulkFromDOM();
+  });
+  clearNumbersBtn.addEventListener("click", function () {
+    numbersList.innerHTML = "";
+    bulkNumbers = [];
+    updateNumCount();
+  });
+
+  uploadBtn.addEventListener("click", function () {
+    if (uploadBtn.disabled) return;
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", function () {
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    if (!/\.txt$/i.test(file.name) && file.type && file.type.indexOf("text") !== 0) {
+      setFileStatus("only .txt files are supported.", true);
+      fileInput.value = "";
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      parseBulkFile(String(e.target.result || ""), file.name);
+      fileInput.value = "";
+    };
+    reader.onerror = function () {
+      setFileStatus("could not read file", true);
+      fileInput.value = "";
+    };
+    reader.readAsText(file, "UTF-8");
+  });
+
+  function parseBulkFile(text, filename) {
+    var lines = text.split(/\r\n|\r|\n/);
+    var existing = {};
+    numbersList.querySelectorAll('input[type="tel"]').forEach(function (inp) {
+      var v = inp.value.replace(/\D/g, "");
+      if (v) existing[v] = true;
+    });
+    var parsed = [], skipped = 0, duplicates = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var raw = String(lines[i] || "").trim();
+      if (!raw) continue;
+      var digits = raw.replace(/\D/g, "");
+      if (digits.startsWith("977")) digits = digits.slice(3);
+      if (digits.length > 10) digits = digits.slice(-10);
+      if (!isValidNepaliPhone(digits)) { skipped++; continue; }
+      if (existing[digits]) { duplicates++; continue; }
+      existing[digits] = true;
+      parsed.push(digits);
+    }
+    var currentCount = numbersList.querySelectorAll(".bulk-row").length;
+    var space = MAX_BULK - currentCount;
+    var added = 0, truncated = 0;
+    for (var k = 0; k < parsed.length; k++) {
+      if (added >= space) { truncated++; continue; }
+      createNumberRow(parsed[k]);
+      added++;
+    }
+    syncBulkFromDOM();
+    if (added === 0 && parsed.length === 0 && skipped === 0 && duplicates === 0) {
+      setFileStatus("file appears empty", true);
+      return;
+    }
+    var parts = [];
+    if (added) parts.push("added " + added);
+    if (duplicates) parts.push(duplicates + " dupes skipped");
+    if (skipped) parts.push(skipped + " invalid");
+    if (truncated) parts.push(truncated + " over limit");
+    setFileStatus(filename + " — " + parts.join(" · "), added === 0);
+  }
+
+  function setFileStatus(msg, isError) {
+    fileStatus.textContent = msg;
+    fileStatus.classList.toggle("error", !!isError);
+    fileStatus.classList.add("show");
+    clearTimeout(setFileStatus._t);
+    setFileStatus._t = setTimeout(function () {
+      fileStatus.classList.remove("show");
+    }, 6000);
+  }
+
+  /* =========================================================
+     COUNT
+     ========================================================= */
+  function maxCount() { return state.sendMode === "bulk" ? MAX_COUNT_BULK : MAX_COUNT_SINGLE; }
+  function updateCount() {
+    countVal.textContent = state.count;
+    countMinus.disabled = state.count <= 1 || state.isSending;
+    countPlus.disabled = state.count >= maxCount() || state.isSending;
+    countComment.textContent = "// max " + maxCount();
+  }
+  countMinus.addEventListener("click", function () {
+    if (state.count > 1) { state.count--; updateCount(); }
+  });
+  countPlus.addEventListener("click", function () {
+    if (state.count < maxCount()) { state.count++; updateCount(); }
+  });
+
+  /* =========================================================
+     PHONE VALIDATION
+     ========================================================= */
+  function validatePhone() {
+    var ok = isValidNepaliPhone(phoneInput.value.replace(/\D/g, ""));
+    phoneRow.classList.toggle("error", !ok);
+    phoneError.classList.toggle("show", !ok);
+    return ok;
+  }
+  phoneInput.addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+    if (this.value.length === 10) validatePhone();
+    else { phoneRow.classList.remove("error"); phoneError.classList.remove("show"); }
+  });
+  phoneInput.addEventListener("keydown", function (e) {
+    if (["e","E","+","-",".",","].indexOf(e.key) !== -1) e.preventDefault();
+  });
+
+  terms.addEventListener("change", function () {
+    if (terms.checked) {
+      termsCheck.classList.remove("error");
+      termsError.classList.remove("show");
+    }
+  });
+
+  /* =========================================================
+     DISABLE / ENABLE
+     ========================================================= */
+  function setControlsDisabled(disabled) {
+    state.isSending = disabled;
+    countMinus.disabled = disabled || state.count <= 1;
+    countPlus.disabled = disabled || state.count >= maxCount();
+    document.querySelectorAll('[data-mode], [data-gw]').forEach(function (l) {
+      l.style.pointerEvents = disabled ? "none" : "";
+      l.style.opacity = disabled ? "0.55" : "";
+    });
+    gwPicker.querySelectorAll('input').forEach(function (cb) { cb.disabled = disabled; });
+    numbersList.querySelectorAll("input, button").forEach(function (el) { el.disabled = disabled; });
+    addNumberBtn.disabled = disabled || numbersList.querySelectorAll(".bulk-row").length >= MAX_BULK;
+    clearNumbersBtn.disabled = disabled || numbersList.querySelectorAll(".bulk-row").length === 0;
+    uploadBtn.disabled = disabled || numbersList.querySelectorAll(".bulk-row").length >= MAX_BULK;
+    phoneInput.disabled = disabled;
+  }
+
+  /* =========================================================
+     REAL HTTP REQUEST
+     ========================================================= */
+  async function sendOne(phone, gateway) {
+    var payload = { phone: phone };
+    if (gateway && gateway !== "auto") payload.gateway = gateway;
+    else payload.gateway = "auto";
+
+    var bodyText = JSON.stringify(payload);
+    var t0 = performance.now();
+    var response = null;
+    var data = null;
+    var error = null;
+    var status = 0;
+    var statusText = "";
+
+    // Log outgoing
+    logLine("POST " + WORKER_URL, "fn");
+    logLine("  content-type: application/json", "info");
+    logLine("  body: " + bodyText, "info");
+
+    try {
+      response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: bodyText
+      });
+      status = response.status;
+      statusText = response.statusText || "";
+      var raw = await response.text();
+      try { data = JSON.parse(raw); }
+      catch (e) { data = { ok: false, msg: "non-json response", raw: raw }; }
+    } catch (e) {
+      error = e;
+    }
+
+    var elapsed = Math.round(performance.now() - t0);
+
+    // Log response
+    if (error) {
+      logLine("network error · " + error.message + " · " + elapsed + "ms", "err");
+      return { ok: false, msg: "network: " + error.message, ms: elapsed, status: 0, data: null };
+    }
+
+    logLine("HTTP " + status + (statusText ? " " + statusText : "") + " · " + elapsed + "ms",
+            status >= 200 && status < 300 ? "ret" : "warn");
+
+    var respText = data && typeof data === "object" ? JSON.stringify(data) : String(data);
+    logLine("response: " + respText, data && data.ok ? "ok" : "err");
+
+    return {
+      ok: !!(data && data.ok),
+      msg: data ? (data.msg || "") : "",
+      ms: elapsed,
+      status: status,
+      data: data
+    };
+  }
+
+  /* =========================================================
+     MAIN RUN
+     ========================================================= */
+  async function runFlow(phones, perNumber, gwMode, manualIds) {
+    state.stats = { ok: 0, fail: 0, totalMs: 0, responses: [] };
+
+    // Header
+    clearTerm();
+    logLogo();
+    hr();
+    banner("run --phones " + phones.length + " --count " + perNumber + " --gateway " + gwMode);
+    logLine("started at " + new Date().toISOString(), "dim");
+    logLine("target: " + WORKER_URL, "dim");
+    hr();
+
+    var totalRequests = phones.length * perNumber;
+    var globalIndex = 0;
+
+    setTermStat("running", "running");
+    setStatusMode("SENDING", "dispatching");
+
+    for (var p = 0; p < phones.length; p++) {
+      var phone = phones[p];
+
+      for (var k = 0; k < perNumber; k++) {
+        globalIndex++;
+
+        logLine(
+          "[" + globalIndex + "/" + totalRequests + "] phone +977" + phone + " · msg " + (k + 1) + "/" + perNumber,
+          "stage"
+        );
+
+        var result;
+        if (gwMode === "manual" && manualIds.length) {
+          // Manual: try each selected gateway until one succeeds
+          result = { ok: false, msg: "no attempt", ms: 0, status: 0 };
+          for (var gi = 0; gi < manualIds.length; gi++) {
+            var gid = manualIds[gi];
+            var glabel = GATEWAY_LABELS[gid] || gid;
+            logLine("try gateway '" + gid + "' (" + glabel + ")", "info");
+            result = await sendOne(phone, gid);
+            state.stats.totalMs += result.ms;
+            state.stats.responses.push(result);
+            if (result.ok) {
+              logLine("gateway accepted · " + glabel, "ok");
+              break;
+            } else {
+              logLine("gateway rejected · rotating", "warn");
+            }
+          }
+        } else {
+          // Auto: one request, worker rotates internally
+          result = await sendOne(phone, "auto");
+          state.stats.totalMs += result.ms;
+          state.stats.responses.push(result);
+        }
+
+        if (result.ok) {
+          state.stats.ok++;
+          var winnerLabel = result.msg ? " · via " + result.msg : "";
+          logLine("delivered to +977" + phone + winnerLabel, "ok");
+        } else {
+          state.stats.fail++;
+          logLine("failed to deliver to +977" + phone + " — " + (result.msg || "unknown"), "err");
+        }
+
+        logLine("");
+      }
+    }
+
+    // Summary
+    hr();
+    var avg = state.stats.responses.length
+      ? Math.round(state.stats.totalMs / state.stats.responses.length)
+      : 0;
+
+    logLine("summary", "stage");
+    logLine("  total messages    : " + totalRequests, "info");
+    logLine("  delivered         : " + state.stats.ok, "ok");
+    logLine("  failed            : " + state.stats.fail, state.stats.fail > 0 ? "err" : "info");
+    logLine("  total time        : " + state.stats.totalMs + "ms", "info");
+    logLine("  avg response time : " + avg + "ms", "info");
+    logLine("  finished at       : " + new Date().toISOString(), "dim");
+    hr();
+
+    if (state.stats.fail === 0) {
+      logLine("all messages dispatched successfully", "ok");
+      setTermStat("done", "complete");
+      setStatusMode("DONE", "delivered");
+    } else if (state.stats.ok === 0) {
+      logLine("all attempts failed", "err");
+      setTermStat("error", "failed");
+      setStatusMode("ERROR", "failed");
+    } else {
+      logLine("partial success · " + state.stats.ok + " ok · " + state.stats.fail + " failed", "warn");
+      setTermStat("done", "partial");
+      setStatusMode("DONE", "partial");
+    }
+
+    // Terminal cursor
+    var finalLine = document.createElement("div");
+    finalLine.className = "log__line log__line--dim";
+    finalLine.innerHTML = '<span class="ts">[' + nowStamp() + ']</span><span class="msg">$ <span class="cursor-blink"></span></span>';
+    termBody.appendChild(finalLine);
+    termBody.scrollTop = termBody.scrollHeight;
+
+    // Update status bar
+    statusOK.textContent = "ok " + state.stats.ok;
+    statusFail.textContent = "fail " + state.stats.fail;
+
+    // Re-enable controls
+    setControlsDisabled(false);
+    sendBtn.disabled = false;
+    sendBtnLabel.textContent = "dispatch otp";
+  }
+
+  /* =========================================================
+     SUBMIT
+     ========================================================= */
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (state.isSending) return;
+
+    // Validate
+    var phones = [];
+    if (state.sendMode === "single") {
+      if (!validatePhone()) { phoneInput.focus(); return; }
+      phones = [phoneInput.value.replace(/\D/g, "")];
+    } else {
+      syncBulkFromDOM();
+      phones = bulkNumbers.filter(isValidNepaliPhone);
+      if (phones.length === 0) { setFileStatus("no valid numbers", true); return; }
+    }
+
+    var manualIds = [];
+    if (state.gwMode === "manual") {
+      manualIds = Array.prototype.slice.call(
+        gwPicker.querySelectorAll('input[type="checkbox"]:checked')
+      ).map(function (cb) { return cb.value; });
+      if (manualIds.length === 0) { gwError.classList.add("show"); return; }
+    }
+
+    if (!terms.checked) {
+      termsCheck.classList.add("error");
+      termsError.classList.add("show");
+      return;
+    }
+    termsCheck.classList.remove("error");
+    termsError.classList.remove("show");
+
+    // Lock UI
+    sendBtn.disabled = true;
+    sendBtnLabel.textContent = "dispatching…";
+    setControlsDisabled(true);
+
+    // Reset stats display
+    statusOK.textContent = "ok 0";
+    statusFail.textContent = "fail 0";
+
+    // Kick off
+    runFlow(phones, state.count, state.gwMode, manualIds);
+  });
+
+  /* =========================================================
+     INIT
+     ========================================================= */
+  createNumberRow("");
+  syncBulkFromDOM();
+  singlePane.hidden = false;
+  bulkPane.hidden = true;
+  gwField.hidden = true;
+  updateCount();
+  updateNumCount();
+
+  // Show user phone in status bar
+  if (window.__smsUser && window.__smsUser.phone) {
+    statusUser.textContent = window.__smsUser.phone;
+  } else {
+    statusUser.textContent = "—";
+  }
+
+  showWelcome();
+
+  /* =========================================================
+     iOS double-tap zoom guard
+     ========================================================= */
+  var lastTouch = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTouch < 350) {
+      var el = e.target && e.target.closest && e.target.closest("button, a, label");
+      if (el) e.preventDefault();
+    }
+    lastTouch = now;
+  }, { passive: false });
+
+})();
+</script>
+</body>
+</html>

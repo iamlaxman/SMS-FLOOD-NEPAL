@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>About — root@smsadda:~/about</title>
+<meta name="description" content="About SMS Adda — a no-nonsense OTP delivery tool for Nepal, built by Laxman Poudel." />
+<meta name="author" content="Laxman Poudel" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SMS Adda" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="robots" content="index, follow" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://smsadda.vercel.app/about.html" />
+<meta property="og:title" content="About — SMS Adda" />
+<meta property="og:description" content="A no-nonsense OTP delivery tool for Nepal." />
+<meta property="og:site_name" content="SMS Adda" />
+
+<link rel="canonical" href="https://smsadda.vercel.app/about.html" />
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root {
+  --bg:        #0a0a0a;
+  --panel:     #0f0f0f;
+  --panel-2:   #131313;
+  --cream:     #F4F1E8;
+  --phosphor:  #DFFF00;
+  --phosphor-2:#c6e600;
+  --orange:    #FF4D00;
+  --orange-2:  #FF8A3D;
+  --green:     #4ade80;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --cyan:      #22d3ee;
+  --dim:       rgba(223,255,0,.5);
+  --dim-2:     rgba(244,241,232,.4);
+  --soft:      #c9c9a8;
+  --line:      rgba(223,255,0,.15);
+  --line-2:    rgba(244,241,232,.1);
+
+  --font: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --ease:     cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+
+  --chrome-h: 40px;
+  --status-h: 28px;
+  --sidebar-w: 260px;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--soft);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--phosphor); color: var(--bg); }
+
+a:focus, button:focus { outline: none; }
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--phosphor);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   BOOT OVERLAY
+   ========================================================= */
+#boot {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(16px, 6vw, 80px);
+  font-size: 13px;
+  color: var(--phosphor);
+  transition: opacity .4s var(--ease-out);
+}
+#boot.done { opacity: 0; pointer-events: none; }
+#boot__inner { max-width: 720px; width: 100%; margin-inline: auto; }
+#boot pre {
+  margin: 0 0 24px;
+  font-family: var(--font);
+  font-size: clamp(6px, 1.6vw, 11px);
+  line-height: 1.15;
+  color: var(--phosphor);
+  font-weight: 700;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#boot pre::-webkit-scrollbar { display: none; }
+.boot-line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.6em;
+}
+.boot-line .ok { color: var(--green); }
+.boot-line .warn { color: var(--amber); }
+.boot-line .accent { color: var(--orange-2); }
+.boot-line .dim { color: var(--dim-2); }
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--phosphor);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* =========================================================
+   OS SHELL
+   ========================================================= */
+.os {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* --- Chrome bar --- */
+.os__chrome {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--chrome-h);
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: clamp(12px, 2vw, 20px);
+  z-index: 100;
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+.chrome__dots { display: flex; gap: 6px; flex-shrink: 0; }
+.chrome__dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1px solid var(--line);
+}
+.chrome__dot--r { background: var(--orange); }
+.chrome__dot--y { background: var(--amber); }
+.chrome__dot--g { background: var(--green); }
+
+.chrome__title {
+  flex: 1;
+  text-align: center;
+  color: var(--phosphor);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.chrome__title .user { color: var(--phosphor); }
+.chrome__title .sep { color: var(--dim); }
+.chrome__title .path { color: var(--orange-2); }
+.chrome__title .dim { color: var(--dim); }
+
+.chrome__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__status::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.chrome__links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__link {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  color: var(--dim);
+  transition: all .2s var(--ease);
+}
+.chrome__link:hover {
+  color: var(--phosphor);
+  border-color: var(--line);
+  background: rgba(223,255,0,.04);
+}
+.chrome__link.active {
+  color: var(--phosphor);
+  background: rgba(223,255,0,.06);
+}
+.chrome__link--cta {
+  color: var(--bg);
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+}
+.chrome__link--cta:hover {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+  color: var(--bg);
+}
+
+@media (max-width: 720px) {
+  .chrome__links .chrome__link:not(.chrome__link--cta) { display: none; }
+  .chrome__status { display: none; }
+}
+@media (max-width: 420px) {
+  .chrome__title { font-size: 10px; }
+  .chrome__link--cta .label { display: none; }
+}
+
+/* --- Layout --- */
+.os__body {
+  flex: 1 1 auto;
+  margin-top: calc(var(--chrome-h) + env(safe-area-inset-top, 0px));
+  margin-bottom: calc(var(--status-h) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  min-height: 0;
+}
+
+.os__sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 20px 0;
+  font-size: 12px;
+  position: sticky;
+  top: calc(var(--chrome-h) + env(safe-area-inset-top, 0px));
+  height: calc(100dvh - var(--chrome-h) - var(--status-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.os__sidebar::-webkit-scrollbar { width: 4px; }
+.os__sidebar::-webkit-scrollbar-thumb { background: var(--line); }
+
+@media (max-width: 900px) {
+  .os__sidebar { display: none; }
+}
+
+.sidebar__group { margin-bottom: 20px; }
+.sidebar__label {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 0 20px;
+  margin-bottom: 6px;
+}
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 20px;
+  color: var(--soft);
+  font-size: 12px;
+  transition: all .15s var(--ease);
+  border-left: 2px solid transparent;
+}
+.sidebar__link::before {
+  content: "▸";
+  color: var(--dim);
+  font-size: 10px;
+  transition: color .15s var(--ease);
+}
+.sidebar__link:hover {
+  background: rgba(223,255,0,.04);
+  color: var(--phosphor);
+  border-left-color: var(--phosphor);
+}
+.sidebar__link:hover::before { color: var(--phosphor); }
+.sidebar__link.active {
+  color: var(--phosphor);
+  border-left-color: var(--phosphor);
+  background: rgba(223,255,0,.05);
+}
+.sidebar__link.active::before { color: var(--phosphor); }
+
+.sidebar__stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 20px;
+  font-size: 11px;
+  color: var(--dim);
+}
+.sidebar__stat b {
+  color: var(--phosphor);
+  font-weight: 500;
+}
+
+.os__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* --- Status bar --- */
+.os__status {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--status-h);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding-inline: clamp(12px, 2vw, 20px);
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  z-index: 100;
+}
+.status__mode {
+  background: var(--phosphor);
+  color: var(--bg);
+  padding: 2px 8px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+.status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.status__item::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .6;
+}
+.status__spacer { flex: 1; min-width: 0; }
+@media (max-width: 640px) {
+  .status__hide-sm { display: none; }
+}
+
+/* =========================================================
+   TERMINAL SECTIONS
+   ========================================================= */
+.tsection {
+  padding: clamp(28px, 4vw, 56px) clamp(20px, 4vw, 56px);
+  border-bottom: 1px solid var(--line-2);
+  position: relative;
+  scroll-margin-top: calc(var(--chrome-h) + env(safe-area-inset-top, 0px) + 20px);
+}
+.tsection:last-child { border-bottom: 0; }
+
+.tsection__cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: clamp(16px, 2.4vw, 28px);
+}
+.tsection__cmd .ps1 {
+  color: var(--phosphor);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.tsection__cmd .path { color: var(--orange-2); }
+.tsection__cmd .arg { color: var(--soft); }
+.tsection__cmd .comment { color: var(--dim); font-size: 11px; }
+
+.tsection__out {
+  font-size: clamp(13px, 1.3vw, 15px);
+  line-height: 1.7;
+  color: var(--soft);
+  max-width: 82ch;
+}
+.tsection__out p { margin: 0 0 12px; }
+.tsection__out p:last-child { margin-bottom: 0; }
+.tsection__out strong { color: var(--phosphor); font-weight: 600; }
+.tsection__out em { color: var(--orange-2); font-style: normal; }
+
+.tsection__title {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(26px, 3.6vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 clamp(12px, 1.6vw, 20px);
+  color: var(--cream);
+}
+.tsection__title .dim { color: var(--dim); }
+.tsection__title .hi  { color: var(--phosphor); }
+.tsection__title .warn { color: var(--orange); }
+
+/* Divider */
+.out-hr {
+  border: 0;
+  border-top: 1px dashed var(--line);
+  margin: 20px 0;
+}
+
+/* Key-value rows */
+.kv {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) 1fr;
+  gap: 6px 20px;
+  font-size: 12.5px;
+  margin: 16px 0;
+}
+.kv dt { color: var(--dim); }
+.kv dd { margin: 0; color: var(--soft); }
+
+/* Meta strip */
+.meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 40px);
+  padding: 16px 0;
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.meta-strip__item { display: flex; flex-direction: column; gap: 2px; }
+.meta-strip__label {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.meta-strip__val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--phosphor);
+}
+
+/* Hero art */
+.hero-art {
+  font-family: var(--font);
+  font-size: clamp(7px, 1.4vw, 13px);
+  line-height: 1.1;
+  color: var(--phosphor);
+  font-weight: 700;
+  margin: 0 0 clamp(16px, 2vw, 24px);
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+  text-shadow: 0 0 12px rgba(223,255,0,.25);
+}
+.hero-art::-webkit-scrollbar { display: none; }
+
+/* Lists */
+.term-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12.5px;
+}
+.term-list li {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+  align-items: baseline;
+}
+.term-list li:last-child { border-bottom: 0; }
+.term-list .n { color: var(--dim); }
+.term-list .name { color: var(--cream); font-weight: 500; }
+.term-list .name .slash { color: var(--dim); }
+.term-list .meta {
+  color: var(--orange-2);
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+.term-list .ok { color: var(--green); }
+.term-list .warn { color: var(--amber); }
+
+@media (max-width: 520px) {
+  .term-list li { grid-template-columns: 30px 1fr; row-gap: 4px; }
+  .term-list .meta { grid-column: 2; text-align: left; }
+}
+
+/* Bulleted list */
+.term-list--bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  font-size: 13px;
+}
+.term-list--bullets li {
+  display: block;
+  padding: 4px 0 4px 22px;
+  position: relative;
+  color: var(--soft);
+  line-height: 1.65;
+}
+.term-list--bullets li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--phosphor);
+  font-weight: 600;
+}
+
+/* Notice callouts */
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--phosphor);
+  background: rgba(223,255,0,.03);
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 13px;
+}
+.notice__label {
+  display: block;
+  font-family: var(--font);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--phosphor);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.notice__label::before { content: "! "; }
+.notice p { margin: 0; color: var(--soft); }
+.notice--warn {
+  border-left-color: var(--orange);
+  background: rgba(255,77,0,.04);
+}
+.notice--warn .notice__label { color: var(--orange); }
+.notice--warn .notice__label::before { content: "!! "; }
+.notice--info {
+  border-left-color: var(--cyan);
+  background: rgba(34,211,238,.03);
+}
+.notice--info .notice__label { color: var(--cyan); }
+.notice--info .notice__label::before { content: "i "; }
+.notice--ok {
+  border-left-color: var(--green);
+  background: rgba(74,222,128,.03);
+}
+.notice--ok .notice__label { color: var(--green); }
+.notice--ok .notice__label::before { content: "✓ "; }
+
+/* Principles / values grid */
+.values {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0;
+  border: 1px solid var(--line);
+  margin: 20px 0;
+}
+.value {
+  padding: 18px 20px;
+  border-right: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.value__glyph {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: rgba(223,255,0,.04);
+  color: var(--phosphor);
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.value__title {
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--phosphor);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+.value__desc {
+  font-size: 12px;
+  color: var(--soft);
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* How it works — numbered steps */
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  border-top: 1px solid var(--line-2);
+}
+.steps li {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line-2);
+  align-items: start;
+}
+.steps__num {
+  font-family: var(--font);
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.steps__body h3 {
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--cream);
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+.steps__body p {
+  font-size: 12.5px;
+  color: var(--soft);
+  margin: 0;
+  line-height: 1.65;
+}
+@media (max-width: 480px) {
+  .steps li { grid-template-columns: 40px 1fr; gap: 12px; }
+  .steps__num { font-size: 22px; }
+}
+
+/* Stats strip */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0;
+  border: 1px solid var(--line);
+  margin: 20px 0;
+}
+.stats__item {
+  padding: 20px 16px;
+  border-right: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stats__num {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--phosphor);
+}
+.stats__num em {
+  font-style: normal;
+  color: var(--orange);
+}
+.stats__label {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* FAQ */
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--line-2);
+  margin: 20px 0;
+}
+.faq details {
+  border-bottom: 1px solid var(--line-2);
+}
+.faq summary {
+  list-style: none;
+  padding: 16px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: -0.005em;
+  transition: color .15s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::before {
+  content: "+";
+  color: var(--orange);
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 16px;
+  line-height: 1.3;
+  transition: transform .25s var(--ease-out);
+}
+.faq details[open] summary::before {
+  content: "−";
+}
+.faq summary:hover { color: var(--phosphor); }
+.faq__a {
+  padding: 0 0 18px 30px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--soft);
+}
+.faq__a p { margin: 0 0 10px; }
+.faq__a p:last-child { margin-bottom: 0; }
+.faq__a a {
+  color: var(--phosphor);
+  border-bottom: 1px solid currentColor;
+}
+
+/* Contact box */
+.contact-box {
+  border: 1px solid var(--orange);
+  background: rgba(255,77,0,.04);
+  padding: clamp(20px, 3vw, 32px);
+  margin-top: 20px;
+}
+.contact-box__title {
+  font-family: var(--font);
+  font-size: clamp(18px, 2vw + 12px, 28px);
+  font-weight: 700;
+  color: var(--cream);
+  margin: 0 0 10px;
+  line-height: 1.1;
+}
+.contact-box__title::before { content: "$ "; color: var(--orange); }
+.contact-box__title em {
+  font-style: normal;
+  color: var(--orange);
+}
+.contact-box__desc {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0 0 20px;
+  line-height: 1.6;
+  max-width: 56ch;
+}
+.contact-box__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.contact-box__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: all .15s var(--ease);
+}
+.contact-box__link:hover {
+  background: var(--phosphor);
+  color: var(--bg);
+  border-color: var(--phosphor);
+  box-shadow: 0 0 20px rgba(223,255,0,.3);
+}
+.contact-box__link::after {
+  content: "↗";
+  font-size: 1.1em;
+}
+
+/* CTA button */
+.tbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  min-height: 46px;
+  border: 1px solid var(--phosphor);
+  background: transparent;
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  transition: all .18s var(--ease);
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.tbtn:hover {
+  background: var(--phosphor);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(223,255,0,.35);
+}
+.tbtn::before { content: "$"; opacity: .6; margin-right: -2px; }
+.tbtn--orange { border-color: var(--orange); color: var(--orange); }
+.tbtn--orange:hover {
+  background: var(--orange);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(255,77,0,.4);
+}
+.tbtn--filled {
+  background: var(--phosphor);
+  color: var(--bg);
+}
+.tbtn--filled:hover {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(18px, 2.4vw, 28px);
+}
+
+/* End marker */
+.end {
+  padding: 24px clamp(20px, 4vw, 56px) 48px;
+  text-align: center;
+  font-family: var(--font);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+.end::before { content: "■ "; color: var(--orange); }
+
+/* =========================================================
+   SCANLINE OVERLAY
+   ========================================================= */
+.os::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(223,255,0,.015) 0px,
+    rgba(223,255,0,.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 9998;
+  mix-blend-mode: screen;
+  opacity: .5;
+}
+@media (prefers-reduced-motion: reduce), (max-width: 480px) {
+  .os::before { display: none; }
+}
+
+/* Reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+@media print {
+  .os__chrome, .os__sidebar, .os__status, #boot, .btn-row, .contact-box { display: none; }
+  body { background: #fff; color: #000; }
+  .os__body { margin: 0; }
+  .tsection { border-bottom: none; padding: 12px 0; page-break-inside: avoid; }
+  .tsection__out, .tsection__title { color: #000; }
+  .tsection__title .hi { color: #000; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ BOOT OVERLAY ============================ -->
+<div id="boot" aria-hidden="true">
+  <div id="boot__inner">
+    <pre>
+   ███████╗███╗   ███╗███████╗     █████╗ ██████╗ ██████╗  █████╗ 
+   ██╔════╝████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗
+   ███████╗██╔████╔██║███████╗    ███████║██║  ██║██║  ██║███████║
+   ╚════██║██║╚██╔╝██║╚════██║    ██╔══██║██║  ██║██║  ██║██╔══██║
+   ███████║██║ ╚═╝ ██║███████║    ██║  ██║██████╔╝██████╔╝██║  ██║
+   ╚══════╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝</pre>
+    <div id="boot__lines"></div>
+  </div>
+</div>
+
+<!-- ============================ OS SHELL ============================ -->
+<div class="os">
+
+  <!-- ---------- CHROME BAR ---------- -->
+  <header class="os__chrome">
+    <div class="chrome__dots" aria-hidden="true">
+      <span class="chrome__dot chrome__dot--r"></span>
+      <span class="chrome__dot chrome__dot--y"></span>
+      <span class="chrome__dot chrome__dot--g"></span>
+    </div>
+
+    <div class="chrome__title">
+      <span class="user">root@smsadda</span><span class="sep">:</span><span class="path">~/about</span>
+      <span class="dim"> — read-only</span>
+    </div>
+
+    <div class="chrome__status" aria-hidden="true">online</div>
+
+    <nav class="chrome__links" aria-label="Primary">
+      <a class="chrome__link" href="/">home</a>
+      <a class="chrome__link active" href="/about.html">about</a>
+      <a class="chrome__link" href="/terms.html">terms</a>
+      <a class="chrome__link" href="/privacy.html">privacy</a>
+      <a class="chrome__link chrome__link--cta" href="/login.html">
+        <span class="label">ssh in</span> <span aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- ---------- BODY ---------- -->
+  <div class="os__body">
+
+    <!-- ---------- SIDEBAR ---------- -->
+    <aside class="os__sidebar" aria-label="Navigation">
+      <div class="sidebar__group">
+        <div class="sidebar__label">~/about</div>
+        <a class="sidebar__link active" href="#intro">intro</a>
+        <a class="sidebar__link" href="#mission">mission</a>
+        <a class="sidebar__link" href="#principles">principles</a>
+        <a class="sidebar__link" href="#how">how it works</a>
+        <a class="sidebar__link" href="#stats">stats</a>
+        <a class="sidebar__link" href="#faq">faq</a>
+        <a class="sidebar__link" href="#contact">contact</a>
+      </div>
+
+      <div class="sidebar__group">
+        <div class="sidebar__label">/system</div>
+        <div class="sidebar__stat"><span>version</span><b>1.0.0</b></div>
+        <div class="sidebar__stat"><span>region</span><b>+977</b></div>
+        <div class="sidebar__stat"><span>gateways</span><b>6/6</b></div>
+        <div class="sidebar__stat"><span>uptime</span><b>99.9%</b></div>
+        <div class="sidebar__stat"><span>built</span><b>2026</b></div>
+      </div>
+
+      <div class="sidebar__group">
+        <div class="sidebar__label">/links</div>
+        <a class="sidebar__link" href="/terms.html">../terms.html</a>
+        <a class="sidebar__link" href="/privacy.html">../privacy.html</a>
+        <a class="sidebar__link" href="/login.html">../login.html</a>
+      </div>
+    </aside>
+
+    <!-- ---------- MAIN ---------- -->
+    <main class="os__main" id="top">
+
+      <!-- =========== INTRO =========== -->
+      <section class="tsection" id="intro" data-cmd="cat about.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">cat</span>
+          <span class="path">about.md</span>
+          <span class="comment">// who we are</span>
+        </div>
+
+        <pre class="hero-art">   █████╗ ██████╗  ██████╗ ██╗   ██╗████████╗
+   ██╔══██╗██╔══██╗██╔═══██╗██║   ██║╚══██╔══╝
+   ███████║██████╔╝██║   ██║██║   ██║   ██║   
+   ██╔══██║██╔══██╗██║   ██║██║   ██║   ██║   
+   ██║  ██║██████╔╝╚██████╔╝╚██████╔╝   ██║   
+   ╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   </pre>
+
+        <h1 class="tsection__title reveal">
+          A no-nonsense <span class="hi">SMS tool.</span>
+        </h1>
+
+        <div class="tsection__out reveal">
+          <p>
+            SMS Adda is a lightweight tool that helps you reach any Nepali mobile number with a one-time code — quickly, reliably, and without any of the usual clutter.
+          </p>
+
+          <div class="meta-strip reveal">
+            <div class="meta-strip__item">
+              <span class="meta-strip__label">Built by</span>
+              <span class="meta-strip__val">Laxman Poudel</span>
+            </div>
+            <div class="meta-strip__item">
+              <span class="meta-strip__label">Located</span>
+              <span class="meta-strip__val">Nepal +977</span>
+            </div>
+            <div class="meta-strip__item">
+              <span class="meta-strip__label">Version</span>
+              <span class="meta-strip__val">1.0.0</span>
+            </div>
+            <div class="meta-strip__item">
+              <span class="meta-strip__label">Since</span>
+              <span class="meta-strip__val">2026</span>
+            </div>
+          </div>
+
+          <p>
+            No dashboards to learn, no sales call, no minimum spend. Just one endpoint, six gateways, and a delivery pipeline that keeps working.
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== MISSION =========== -->
+      <section class="tsection" id="mission" data-cmd="cat mission.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">cat</span>
+          <span class="path">mission.md</span>
+          <span class="comment">// 01 / why we built this</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">01 /</span> Why we built this
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Existing SMS tools in Nepal are either locked behind corporate contracts, charge per message with minimum commitments, or are so generic that delivering a simple OTP turns into a week-long integration project.
+          </p>
+          <p>
+            We wanted something a single developer could use in an afternoon. SMS Adda is the result — a clean interface, a straightforward API, and a set of Nepali SMS gateways wired together so one call gets through even if a single provider is down.
+          </p>
+
+          <div class="notice notice--info">
+            <span class="notice__label">philosophy</span>
+            <p>The goal is <strong>defensive literacy</strong>, not a weaponised tool. We publish patterns, not exploits.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== PRINCIPLES =========== -->
+      <section class="tsection" id="principles" data-cmd="cat principles.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">cat</span>
+          <span class="path">principles.md</span>
+          <span class="comment">// 02 / what we stand for</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">02 /</span> What we stand for
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Six principles guide how we build SMS Adda.
+          </p>
+
+          <div class="values reveal">
+            <div class="value">
+              <span class="value__glyph">⚡</span>
+              <h3 class="value__title">Fast by default</h3>
+              <p class="value__desc">Under five seconds from tap to delivered, or we rotate to the next gateway automatically.</p>
+            </div>
+            <div class="value">
+              <span class="value__glyph">🛡</span>
+              <h3 class="value__title">Privacy first</h3>
+              <p class="value__desc">Recipient numbers are passed through in memory and never written to disk.</p>
+            </div>
+            <div class="value">
+              <span class="value__glyph">◐</span>
+              <h3 class="value__title">Always available</h3>
+              <p class="value__desc">Six independent gateways mean one outage never takes the whole service down.</p>
+            </div>
+            <div class="value">
+              <span class="value__glyph">{ }</span>
+              <h3 class="value__title">Simple API</h3>
+              <p class="value__desc">One endpoint, one payload. No SDK, no auth dance, no complicated setup.</p>
+            </div>
+            <div class="value">
+              <span class="value__glyph">+977</span>
+              <h3 class="value__title">Nepal-only focus</h3>
+              <p class="value__desc">Built specifically for +977 numbers. No wasted coverage, no dead routes.</p>
+            </div>
+            <div class="value">
+              <span class="value__glyph">✕</span>
+              <h3 class="value__title">No lock-in</h3>
+              <p class="value__desc">Pay per message, use what you need, walk away whenever. No contracts.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== HOW IT WORKS =========== -->
+      <section class="tsection" id="how" data-cmd="cat how-it-works.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">cat</span>
+          <span class="path">how-it-works.md</span>
+          <span class="comment">// 03 / from send to delivered</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">03 /</span> How it works
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Four steps from the moment you press send to the message landing on the recipient's phone.
+          </p>
+
+          <ol class="steps reveal">
+            <li>
+              <span class="steps__num">01</span>
+              <div class="steps__body">
+                <h3>You enter a number</h3>
+                <p>Any valid +977 mobile — 98 or 97 prefix, ten digits. Add as many numbers as you like in bulk mode.</p>
+              </div>
+            </li>
+            <li>
+              <span class="steps__num">02</span>
+              <div class="steps__body">
+                <h3>We validate and pick a gateway</h3>
+                <p>The phone number is checked, then our worker picks a gateway from six providers. In auto mode we rotate until one accepts; in manual mode you choose.</p>
+              </div>
+            </li>
+            <li>
+              <span class="steps__num">03</span>
+              <div class="steps__body">
+                <h3>The SMS is dispatched</h3>
+                <p>The chosen gateway sends the message. If it fails, we try the next one. You see every step in the live terminal trace.</p>
+              </div>
+            </li>
+            <li>
+              <span class="steps__num">04</span>
+              <div class="steps__body">
+                <h3>Delivered to the phone</h3>
+                <p>The recipient gets the message within seconds. Every send is confirmed in the response and logged in your session.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- =========== STATS =========== -->
+      <section class="tsection" id="stats" data-cmd="stats --live">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">stats</span>
+          <span class="comment">--live</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">04 /</span> By the numbers
+        </h2>
+
+        <div class="tsection__out reveal">
+          <div class="stats reveal">
+            <div class="stats__item">
+              <span class="stats__num"><em>6</em></span>
+              <span class="stats__label">SMS gateways</span>
+            </div>
+            <div class="stats__item">
+              <span class="stats__num">+977</span>
+              <span class="stats__label">Coverage</span>
+            </div>
+            <div class="stats__item">
+              <span class="stats__num">&lt;5s</span>
+              <span class="stats__label">Avg delivery</span>
+            </div>
+            <div class="stats__item">
+              <span class="stats__num">99<em>%</em></span>
+              <span class="stats__label">Uptime</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== FAQ =========== -->
+      <section class="tsection" id="faq" data-cmd="cat FAQ.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">cat</span>
+          <span class="path">FAQ.md</span>
+          <span class="comment">// 05 / questions answered</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">05 /</span> Frequently asked
+        </h2>
+
+        <div class="tsection__out reveal">
+          <div class="faq">
+            <details>
+              <summary>Is SMS Adda free to use?</summary>
+              <div class="faq__a">
+                <p>There's no subscription. You only pay for the messages you send, and there's no minimum commitment. Bulk sends get progressively cheaper per message.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Which numbers can I send to?</summary>
+              <div class="faq__a">
+                <p>Any Nepali mobile number — 10 digits starting with 98 or 97. Landlines and international numbers are not supported at this time.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What happens if a gateway fails?</summary>
+              <div class="faq__a">
+                <p>We automatically rotate to the next available gateway. You'll see each attempt in the live terminal trace, and the winning gateway is highlighted at the end.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Do you store the phone numbers I send to?</summary>
+              <div class="faq__a">
+                <p>No. Phone numbers are passed through to the gateway in memory and never written to disk or logged for more than the duration of your session. See the <a href="/privacy.html">privacy policy</a> for details.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I use this for my own product?</summary>
+              <div class="faq__a">
+                <p>Yes. The API is a single POST endpoint that accepts a phone number and returns a success flag. Any language that can make an HTTP request works — no SDK required.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Is there a rate limit?</summary>
+              <div class="faq__a">
+                <p>Yes — to protect the gateways and prevent abuse, we cap requests per phone number per hour. If you need higher throughput for a legitimate use case, reach out.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Who built this?</summary>
+              <div class="faq__a">
+                <p>SMS Adda was designed and developed by <strong>Laxman Poudel</strong>. You can find more of his work at <a href="https://laxman-poudel.com.np" target="_blank" rel="noopener">laxman-poudel.com.np</a>.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== CONTACT =========== -->
+      <section class="tsection" id="contact" data-cmd="./contact --hello">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">./contact</span>
+          <span class="comment">--hello</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">06 /</span> Get in touch
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Whether you want to say hello, report an issue, or discuss a use case — reach out and we'll respond as soon as we can.
+          </p>
+
+          <div class="contact-box reveal">
+            <h3 class="contact-box__title">Say <em>hello</em></h3>
+            <p class="contact-box__desc">
+              For general questions, feedback, or bug reports, use the links below.
+            </p>
+            <div class="contact-box__links">
+              <a class="contact-box__link" href="https://laxman-poudel.com.np" target="_blank" rel="noopener">
+                laxman-poudel.com.np
+              </a>
+              <a class="contact-box__link" href="/terms.html">
+                terms of service
+              </a>
+              <a class="contact-box__link" href="/privacy.html">
+                privacy policy
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== CTA =========== -->
+      <section class="tsection" data-cmd="./enter --adda">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~/about$</span>
+          <span class="arg">./enter</span>
+          <span class="comment">--adda</span>
+        </div>
+
+        <h2 class="tsection__title reveal" style="font-size: clamp(32px, 5vw, 72px);">
+          <span class="dim">$</span> Ready to send?
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Sign in, enter a number, and watch it go. No setup, no sales call, no minimum spend.
+          </p>
+
+          <div class="btn-row">
+            <a class="tbtn tbtn--filled" href="/login.html">ssh in</a>
+            <a class="tbtn tbtn--orange" href="/terms.html">read terms</a>
+          </div>
+
+          <hr class="out-hr" style="margin-top: 28px;"/>
+
+          <p style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim);">
+            tags: nepali · otp · sms · +977
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== END =========== -->
+      <div class="end">
+        end of document · about v1.0.0 · built by laxman poudel
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ---------- STATUS BAR ---------- -->
+  <footer class="os__status" aria-label="Status">
+    <span class="status__mode">NORMAL</span>
+    <span class="status__item">~/about</span>
+    <span class="status__item status__hide-sm">utf-8</span>
+    <span class="status__item status__hide-sm">unix</span>
+    <span class="status__spacer"></span>
+    <span class="status__item status__hide-sm">nepal · +977</span>
+    <span class="status__item">6 gateways</span>
+    <span class="status__item">v1.0.0</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     BOOT SEQUENCE
+     ========================================================= */
+  var boot = document.getElementById("boot");
+  var bootLines = document.getElementById("boot__lines");
+
+  var lines = [
+    { t: "connecting to smsadda.vercel.app...", c: "dim" },
+    { t: "[  OK  ] loading /about.md", c: "ok" },
+    { t: "[  OK  ] version 1.0.0", c: "ok" },
+    { t: "[  OK  ] author: laxman poudel", c: "ok" },
+    { t: "[  OK  ] region: nepal · +977", c: "ok" },
+    { t: "[  OK  ] gateways detected: 6/6", c: "ok" },
+    { t: "[  OK  ] principles parsed", c: "ok" },
+    { t: "[  OK  ] document ready", c: "ok" },
+    { t: "", c: "" },
+    { t: "welcome to about sms adda", c: "accent" },
+    { t: "scroll to read · built with care · +977", c: "dim" }
+  ];
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  async function runBoot() {
+    for (var i = 0; i < lines.length; i++) {
+      var line = document.createElement("div");
+      line.className = "boot-line";
+      var cls = lines[i].c;
+      var text = lines[i].t;
+
+      if (text) {
+        line.innerHTML = cls ? '<span class="' + cls + '">' + text + '</span>' : text;
+      } else {
+        line.innerHTML = "&nbsp;";
+      }
+      bootLines.appendChild(line);
+
+      if (reduced) continue;
+      await new Promise(function (r) { setTimeout(r, text ? 90 : 40); });
+    }
+
+    var cursorLine = document.createElement("div");
+    cursorLine.className = "boot-line";
+    cursorLine.innerHTML = '$ <span class="cursor-blink"></span>';
+    bootLines.appendChild(cursorLine);
+
+    await new Promise(function (r) { setTimeout(r, reduced ? 100 : 600); });
+    boot.classList.add("done");
+    setTimeout(function () { boot.style.display = "none"; }, 400);
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    Promise.race([
+      document.fonts.ready,
+      new Promise(function (r) { setTimeout(r, 500); })
+    ]).then(runBoot);
+  } else {
+    setTimeout(runBoot, 300);
+  }
+
+  /* =========================================================
+     SIDEBAR ACTIVE STATE
+     ========================================================= */
+  var sidebarLinks = document.querySelectorAll(".sidebar__link");
+  var sections = document.querySelectorAll(".tsection");
+
+  function updateSidebar() {
+    var y = window.scrollY + window.innerHeight * 0.35;
+    var current = null;
+    sections.forEach(function (s) {
+      if (s.offsetTop <= y && s.id) current = s.id;
+    });
+
+    sidebarLinks.forEach(function (l) {
+      var href = l.getAttribute("href");
+      var id = href && href.startsWith("#") ? href.slice(1) : null;
+      l.classList.toggle("active", id === current);
+    });
+  }
+  window.addEventListener("scroll", updateSidebar, { passive: true });
+  updateSidebar();
+
+  /* =========================================================
+     REVEAL ON SCROLL
+     ========================================================= */
+  var reveals = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !reduced) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    reveals.forEach(function (el) { io.observe(el); });
+  } else {
+    reveals.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* =========================================================
+     SMOOTH SCROLL FOR ANCHORS
+     ========================================================= */
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      var href = a.getAttribute("href");
+      if (href === "#" || href.length < 2) return;
+      var target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      history.replaceState(null, "", href);
+    });
+  });
+
+  /* =========================================================
+     FAQ — close others when one opens
+     ========================================================= */
+  var faqs = document.querySelectorAll(".faq details");
+  faqs.forEach(function (d) {
+    d.addEventListener("toggle", function () {
+      if (d.open) {
+        faqs.forEach(function (other) {
+          if (other !== d) other.open = false;
+        });
+      }
+    });
+  });
+
+  /* =========================================================
+     iOS DOUBLE-TAP ZOOM GUARD
+     ========================================================= */
+  var lastTouch = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTouch < 350) {
+      var el = e.target && e.target.closest && e.target.closest("a, button, summary");
+      if (el) e.preventDefault();
+    }
+    lastTouch = now;
+  }, { passive: false });
+
+})();
+</script>
+</body>
+</html>

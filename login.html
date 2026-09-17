@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sign In — root@smsadda:~$ login</title>
+<meta name="description" content="Sign in to SMS Adda." />
+<meta name="author" content="Laxman Poudel" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SMS Adda" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+
+<!-- Early auth check -->
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem("smsadda_user");
+    if (!raw) return;
+    var u = JSON.parse(raw);
+    if (!u || !u.phone) return;
+    var signed = u.signedInAt ? new Date(u.signedInAt).getTime() : 0;
+    var THIRTY = 30 * 24 * 60 * 60 * 1000;
+    if (signed && Date.now() - signed < THIRTY) {
+      window.location.replace("/app.html");
+    } else {
+      try { localStorage.removeItem("smsadda_user"); } catch (_) {}
+    }
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   TOKENS — terminal palette (matches landing page)
+   ========================================================= */
+:root {
+  --bg:        #0a0a0a;
+  --panel:     #0f0f0f;
+  --panel-2:   #131313;
+  --cream:     #F4F1E8;
+  --phosphor:  #DFFF00;
+  --phosphor-2:#c6e600;
+  --orange:    #FF4D00;
+  --orange-2:  #FF8A3D;
+  --green:     #4ade80;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --dim:       rgba(223,255,0,.5);
+  --dim-2:     rgba(244,241,232,.4);
+  --soft:      #c9c9a8;
+  --line:      rgba(223,255,0,.15);
+  --line-2:    rgba(244,241,232,.1);
+
+  --font: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --ease:     cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+
+  --chrome-h: 40px;
+  --status-h: 28px;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body { margin: 0; padding: 0; height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--soft);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+a { color: inherit; text-decoration: none; }
+input { font: inherit; color: inherit; }
+::selection { background: var(--phosphor); color: var(--bg); }
+
+a:focus, button:focus, input:focus { outline: none; }
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--phosphor);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   BOOT OVERLAY
+   ========================================================= */
+#boot {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(16px, 6vw, 80px);
+  font-size: 13px;
+  color: var(--phosphor);
+  transition: opacity .4s var(--ease-out);
+}
+#boot.done { opacity: 0; pointer-events: none; }
+#boot__inner { max-width: 720px; width: 100%; margin-inline: auto; }
+#boot pre {
+  margin: 0 0 24px;
+  font-family: var(--font);
+  font-size: clamp(6px, 1.6vw, 11px);
+  line-height: 1.15;
+  color: var(--phosphor);
+  font-weight: 700;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#boot pre::-webkit-scrollbar { display: none; }
+.boot-line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.6em;
+}
+.boot-line .ok { color: var(--green); }
+.boot-line .warn { color: var(--amber); }
+.boot-line .accent { color: var(--orange-2); }
+.boot-line .dim { color: var(--dim-2); }
+.cursor-blink {
+  display: inline-block;
+  width: 8px; height: 1em;
+  background: var(--phosphor);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* =========================================================
+   OS SHELL
+   ========================================================= */
+.os {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* --- Chrome bar --- */
+.os__chrome {
+  flex-shrink: 0;
+  height: var(--chrome-h);
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: clamp(12px, 2vw, 20px);
+  z-index: 100;
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+.chrome__dots { display: flex; gap: 6px; flex-shrink: 0; }
+.chrome__dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--line); }
+.chrome__dot--r { background: var(--orange); }
+.chrome__dot--y { background: var(--amber); }
+.chrome__dot--g { background: var(--green); }
+
+.chrome__title {
+  flex: 1;
+  text-align: center;
+  color: var(--phosphor);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.chrome__title .user { color: var(--phosphor); }
+.chrome__title .sep { color: var(--dim); }
+.chrome__title .path { color: var(--orange-2); }
+.chrome__title .dim { color: var(--dim); }
+
+.chrome__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__status::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+.chrome__back {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  transition: all .2s var(--ease);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.chrome__back:hover {
+  color: var(--phosphor);
+  border-color: var(--line);
+  background: rgba(223,255,0,.04);
+}
+
+@media (max-width: 540px) {
+  .chrome__status { display: none; }
+}
+@media (max-width: 380px) {
+  .chrome__title { font-size: 10px; }
+  .chrome__title .dim { display: none; }
+}
+
+/* --- Main --- */
+.os__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: clamp(16px, 3vw, 40px) clamp(16px, 3vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.os__main::-webkit-scrollbar { width: 6px; }
+.os__main::-webkit-scrollbar-thumb { background: var(--line); }
+
+/* --- Status bar --- */
+.os__status {
+  flex-shrink: 0;
+  height: var(--status-h);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding-inline: clamp(12px, 2vw, 20px);
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  z-index: 100;
+}
+.status__mode {
+  background: var(--phosphor);
+  color: var(--bg);
+  padding: 2px 8px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+.status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.status__item::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .6;
+}
+.status__spacer { flex: 1; min-width: 0; }
+@media (max-width: 640px) {
+  .status__hide-sm { display: none; }
+}
+
+/* =========================================================
+   TERMINAL PANEL
+   ========================================================= */
+.term {
+  width: 100%;
+  max-width: 720px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-family: var(--font);
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(223,255,0,.04),
+    0 0 60px rgba(223,255,0,.05);
+}
+.term::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 0%, transparent 90%, rgba(223,255,0,.06) 100%);
+}
+
+/* Terminal header bar */
+.term__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: .1em;
+}
+.term__bar-dots { display: flex; gap: 5px; flex-shrink: 0; }
+.term__bar-dot { width: 9px; height: 9px; border-radius: 50%; }
+.term__bar-dot--r { background: var(--orange); }
+.term__bar-dot--y { background: var(--amber); }
+.term__bar-dot--g { background: var(--green); }
+.term__bar-title {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.term__bar-title b { color: var(--phosphor); font-weight: 500; }
+.term__bar-title .dim { color: var(--dim-2); }
+.term__bar-pid {
+  font-size: 10px;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .term__bar-pid { display: none; }
+}
+
+/* Terminal body */
+.term__body {
+  padding: clamp(20px, 3vw, 32px) clamp(18px, 3vw, 32px) clamp(24px, 3vw, 36px);
+  font-size: clamp(12.5px, 1.2vw, 14px);
+  line-height: 1.75;
+}
+
+/* ASCII logo */
+.term__logo {
+  margin: 0 0 22px;
+  font-family: var(--font);
+  font-size: clamp(6.5px, 1.5vw, 12px);
+  line-height: 1.1;
+  color: var(--phosphor);
+  font-weight: 700;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+  text-shadow: 0 0 12px rgba(223,255,0,.3);
+}
+.term__logo::-webkit-scrollbar { display: none; }
+
+/* Command prompt line */
+.cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+.cmd .ps1 { color: var(--phosphor); font-weight: 600; flex-shrink: 0; }
+.cmd .arg { color: var(--soft); }
+.cmd .path { color: var(--orange-2); }
+.cmd .comment { color: var(--dim-2); font-size: 11px; }
+
+/* Output area */
+.out {
+  margin: 0 0 12px;
+  color: var(--soft);
+}
+.out p { margin: 0 0 10px; }
+.out p:last-child { margin-bottom: 0; }
+.out strong { color: var(--phosphor); font-weight: 600; }
+.out em { color: var(--orange-2); font-style: normal; }
+.out .dim { color: var(--dim-2); }
+.out .warn { color: var(--orange); }
+.out .ok { color: var(--green); }
+.out .amber { color: var(--amber); }
+
+/* =========================================================
+   FORM FIELDS (terminal style)
+   ========================================================= */
+.field {
+  margin-bottom: 18px;
+}
+.field__label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.field__label .comment {
+  text-transform: none;
+  letter-spacing: .04em;
+  color: var(--dim-2);
+  font-weight: 400;
+}
+
+.field__line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 0 8px;
+  transition: border-color .2s var(--ease);
+}
+.field__line:focus-within {
+  border-bottom-color: var(--phosphor);
+}
+.field__line.error {
+  border-bottom-color: var(--orange);
+}
+
+.field__prompt {
+  font-size: 13px;
+  color: var(--phosphor);
+  font-weight: 600;
+  flex-shrink: 0;
+  user-select: none;
+}
+.field__prompt .dim { color: var(--dim-2); }
+
+.field__prefix {
+  font-size: 13px;
+  color: var(--orange-2);
+  font-weight: 500;
+  flex-shrink: 0;
+  user-select: none;
+  letter-spacing: .02em;
+}
+
+.field__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 4px 0;
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 15px;
+  letter-spacing: .06em;
+  caret-color: var(--phosphor);
+  -webkit-text-fill-color: var(--phosphor);
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+.field__input:focus,
+.field__input:focus-visible,
+.field__input:active {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.field__input::placeholder {
+  color: var(--dim-2);
+  -webkit-text-fill-color: var(--dim-2);
+  letter-spacing: .06em;
+}
+.field__input::selection {
+  background: var(--phosphor);
+  color: var(--bg);
+  -webkit-text-fill-color: var(--bg);
+}
+
+/* Autofill — kill yellow/white */
+.field__input:-webkit-autofill,
+.field__input:-webkit-autofill:hover,
+.field__input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--panel) inset !important;
+  box-shadow: 0 0 0 1000px var(--panel) inset !important;
+  -webkit-text-fill-color: var(--phosphor) !important;
+  caret-color: var(--phosphor) !important;
+  transition: background-color 9999s ease-out 0s,
+              color 9999s ease-out 0s !important;
+}
+
+/* iOS: 16px to avoid zoom on focus */
+@supports (-webkit-touch-callout: none) {
+  .field__input { font-size: 16px; }
+}
+
+.field__error {
+  display: none;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--orange);
+}
+.field__error::before {
+  content: "!! ";
+  color: var(--orange);
+  font-weight: 700;
+}
+.field__error.show { display: block; }
+
+/* OTP — 6 terminal-style cells */
+.otp {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(4px, 1vw, 8px);
+  margin-bottom: 18px;
+}
+.otp__input {
+  width: 100%;
+  min-height: 52px;
+  aspect-ratio: 1 / 1.1;
+  max-height: 68px;
+  background: transparent;
+  border: 1px solid var(--line);
+  text-align: center;
+  font-family: var(--font);
+  font-size: clamp(16px, 3.6vw, 22px);
+  font-weight: 600;
+  color: var(--phosphor);
+  letter-spacing: 0;
+  caret-color: var(--phosphor);
+  -webkit-text-fill-color: var(--phosphor);
+  outline: 0;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  padding: 0;
+}
+.otp__input:focus,
+.otp__input:focus-visible {
+  outline: 0 !important;
+  box-shadow: 0 0 0 1px var(--phosphor) inset;
+  border-color: var(--phosphor);
+  background: rgba(223,255,0,.04);
+}
+.otp__input.filled {
+  background: rgba(223,255,0,.05);
+  border-color: rgba(223,255,0,.4);
+}
+.otp__input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--panel) inset !important;
+  -webkit-text-fill-color: var(--phosphor) !important;
+}
+
+/* =========================================================
+   BUTTONS (bracketed terminal style)
+   ========================================================= */
+.tbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  min-height: 46px;
+  border: 1px solid var(--phosphor);
+  background: transparent;
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: all .18s var(--ease);
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+  border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.tbtn:hover:not(:disabled) {
+  background: var(--phosphor);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(223,255,0,.35);
+}
+.tbtn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+.tbtn::before { content: "[ "; opacity: .7; }
+.tbtn::after  { content: " ]"; opacity: .7; }
+.tbtn--orange { border-color: var(--orange); color: var(--orange); }
+.tbtn--orange:hover:not(:disabled) {
+  background: var(--orange);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(255,77,0,.4);
+}
+.tbtn--filled {
+  background: var(--phosphor);
+  color: var(--bg);
+}
+.tbtn--filled:hover:not(:disabled) {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+  color: var(--bg);
+}
+.tbtn--block { width: 100%; justify-content: center; }
+.tbtn--sm {
+  padding: 8px 14px;
+  min-height: 38px;
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.btn-row .tbtn { flex: 1 1 auto; justify-content: center; }
+
+/* =========================================================
+   ASIDE / HINT
+   ========================================================= */
+.hint {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--dim-2);
+  line-height: 1.7;
+}
+.hint a {
+  color: var(--phosphor);
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s var(--ease);
+}
+.hint a:hover { border-bottom-color: var(--phosphor); }
+.hint .prompt {
+  color: var(--dim);
+  margin-right: 4px;
+}
+
+/* =========================================================
+   TERMINAL LINES (real output log)
+   ========================================================= */
+.log {
+  margin: 0 0 20px;
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+.log__line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  animation: lineIn .2s var(--ease-out);
+}
+.log__line .ts {
+  color: var(--dim-2);
+  margin-right: 10px;
+  user-select: none;
+}
+.log__line.ok .msg { color: var(--green); }
+.log__line.err .msg { color: var(--red); }
+.log__line.warn .msg { color: var(--amber); }
+.log__line.info .msg { color: var(--soft); }
+.log__line.dim .msg { color: var(--dim-2); }
+@keyframes lineIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   SECTIONS / VIEWS
+   ========================================================= */
+.view { display: none; }
+.view.active { display: block; animation: fadeSlide .3s var(--ease-out); }
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Success block */
+.success {
+  text-align: center;
+  padding: 20px 0;
+}
+.success__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border: 1px solid var(--phosphor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--phosphor);
+  box-shadow: 0 0 32px rgba(223,255,0,.2);
+  animation: popIn .4s var(--ease-out);
+}
+@keyframes popIn {
+  0% { transform: scale(.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.success__icon svg {
+  width: 32px; height: 32px;
+  stroke: currentColor;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.success__title {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(20px, 3vw, 26px);
+  color: var(--phosphor);
+  letter-spacing: .04em;
+  margin: 0 0 10px;
+}
+.success__title::before { content: "> "; color: var(--dim); }
+.success__desc {
+  font-size: 12.5px;
+  color: var(--soft);
+  margin: 0;
+  line-height: 1.7;
+}
+.success__desc .dim { color: var(--dim-2); }
+
+/* =========================================================
+   SPINNER (inline, terminal style)
+   ========================================================= */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(10,10,10,.25);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: -2px;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   SCANLINE OVERLAY
+   ========================================================= */
+.os::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(223,255,0,.015) 0px,
+    rgba(223,255,0,.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 9998;
+  mix-blend-mode: screen;
+  opacity: .5;
+}
+@media (prefers-reduced-motion: reduce), (max-width: 480px) {
+  .os::before { display: none; }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+@media (max-width: 640px) {
+  .term__body { padding: 20px 16px 28px; }
+  .term__logo { font-size: 6.5px; margin-bottom: 18px; }
+  .field__line { padding: 5px 0 7px; }
+  .otp { gap: 5px; }
+  .otp__input { min-height: 46px; aspect-ratio: 1 / 1.15; font-size: 17px; }
+  .tbtn { padding: 11px 16px; min-height: 44px; font-size: 11.5px; }
+}
+@media (max-width: 380px) {
+  .term__body { padding: 18px 14px 24px; font-size: 12px; }
+  .otp { gap: 3px; }
+  .otp__input { min-height: 42px; font-size: 15px; }
+  .field__prompt, .field__prefix { font-size: 12px; }
+  .field__input { font-size: 15px; }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ BOOT OVERLAY ============================ -->
+<div id="boot" aria-hidden="true">
+  <div id="boot__inner">
+    <pre>
+   ███████╗███╗   ███╗███████╗     █████╗ ██████╗ ██████╗  █████╗ 
+   ██╔════╝████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗
+   ███████╗██╔████╔██║███████╗    ███████║██║  ██║██║  ██║███████║
+   ╚════██║██║╚██╔╝██║╚════██║    ██╔══██║██║  ██║██║  ██║██╔══██║
+   ███████║██║ ╚═╝ ██║███████║    ██║  ██║██████╔╝██████╔╝██║  ██║
+   ╚══════╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝</pre>
+    <div id="boot__lines"></div>
+  </div>
+</div>
+
+<!-- ============================ OS SHELL ============================ -->
+<div class="os">
+
+  <!-- ---------- CHROME BAR ---------- -->
+  <header class="os__chrome">
+    <div class="chrome__dots" aria-hidden="true">
+      <span class="chrome__dot chrome__dot--r"></span>
+      <span class="chrome__dot chrome__dot--y"></span>
+      <span class="chrome__dot chrome__dot--g"></span>
+    </div>
+    <div class="chrome__title">
+      <span class="user">root@smsadda</span><span class="sep">:</span><span class="path">~</span><span class="dim"> — login</span>
+    </div>
+    <div class="chrome__status" aria-hidden="true">secure</div>
+    <a class="chrome__back" href="/">← exit</a>
+  </header>
+
+  <!-- ---------- MAIN ---------- -->
+  <main class="os__main">
+    <div class="term">
+
+      <!-- Terminal header -->
+      <div class="term__bar">
+        <div class="term__bar-dots" aria-hidden="true">
+          <span class="term__bar-dot term__bar-dot--r"></span>
+          <span class="term__bar-dot term__bar-dot--y"></span>
+          <span class="term__bar-dot term__bar-dot--g"></span>
+        </div>
+        <div class="term__bar-title">
+          <b>ssh</b> root@smsadda.vercel.app <span class="dim">— tty/01</span>
+        </div>
+        <span class="term__bar-pid">pid 4827</span>
+      </div>
+
+      <!-- Terminal body -->
+      <div class="term__body">
+
+        <pre class="term__logo">   ███████╗███╗   ███╗███████╗
+   ██╔════╝████╗ ████║██╔════╝
+   ███████╗██╔████╔██║███████╗
+   ╚════██║██║╚██╔╝██║╚════██║
+   ███████║██║ ╚═╝ ██║███████║
+   ╚══════╝╚═╝     ╚═╝╚══════╝   A D D A</pre>
+
+        <!-- ============ VIEW: IDENTITY ============ -->
+        <section class="view active" id="view-identity">
+
+          <div class="cmd">
+            <span class="ps1">root@smsadda:~$</span>
+            <span class="arg">login</span>
+            <span class="comment">--method otp --region +977</span>
+          </div>
+
+          <div class="out">
+            <p class="dim">// enter your Nepali mobile number to receive a one-time code</p>
+          </div>
+
+          <div class="log" id="identityLog"></div>
+
+          <form id="identityForm" novalidate autocomplete="on">
+
+            <div class="field">
+              <label class="field__label" for="phone">
+                login <span class="comment">// phone number</span>
+              </label>
+              <div class="field__line" id="phoneRow">
+                <span class="field__prompt">&gt;</span>
+                <span class="field__prefix">+977</span>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="smsadda_phone_noautofill"
+                  class="field__input"
+                  placeholder="98XXXXXXXX"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  maxlength="10"
+                  required
+                />
+              </div>
+              <p class="field__error" id="phoneError">invalid format — must be 10 digits starting with 98 or 97</p>
+            </div>
+
+            <button type="submit" class="tbtn tbtn--filled tbtn--block" id="sendCodeBtn">
+              <span>send verification code</span>
+            </button>
+
+            <p class="hint">
+              <span class="prompt">//</span>
+              by continuing, you agree to our
+              <a href="/terms.html" target="_blank" rel="noopener">terms</a> and
+              <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.
+            </p>
+
+          </form>
+        </section>
+
+        <!-- ============ VIEW: VERIFY ============ -->
+        <section class="view" id="view-verify">
+
+          <div class="cmd">
+            <span class="ps1">root@smsadda:~$</span>
+            <span class="arg">verify</span>
+            <span class="comment">--code</span>
+          </div>
+
+          <div class="out">
+            <p>
+              <span class="ok">[  OK  ]</span>
+              code dispatched to <strong id="phoneDisplay">+977-98XXXXXXXX</strong>
+            </p>
+            <p class="dim">// enter the 6-digit code below — check your SMS inbox</p>
+          </div>
+
+          <div class="log" id="verifyLog"></div>
+
+          <form id="otpForm" novalidate>
+            <div class="otp" id="otpInputs">
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="0" autocomplete="one-time-code" aria-label="Digit 1" />
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="1" aria-label="Digit 2" />
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="2" aria-label="Digit 3" />
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="3" aria-label="Digit 4" />
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="4" aria-label="Digit 5" />
+              <input class="otp__input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-index="5" aria-label="Digit 6" />
+            </div>
+            <p class="field__error" id="otpError">invalid code — must be exactly 6 digits</p>
+
+            <button type="submit" class="tbtn tbtn--filled tbtn--block" id="verifyBtn" disabled>
+              <span>authenticate</span>
+            </button>
+
+            <div class="btn-row">
+              <button type="button" class="tbtn tbtn--sm" id="changeNumberBtn">
+                <span>change number</span>
+              </button>
+              <button type="button" class="tbtn tbtn--sm tbtn--orange" id="resendLink" disabled>
+                <span id="resendText">resend in 30s</span>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- ============ VIEW: SUCCESS ============ -->
+        <section class="view" id="view-success">
+          <div class="cmd">
+            <span class="ps1">root@smsadda:~$</span>
+            <span class="arg">whoami</span>
+            <span class="comment">// verified</span>
+          </div>
+
+          <div class="out" style="margin-bottom: 20px;">
+            <p><span class="ok">[  OK  ]</span> identity verified</p>
+            <p><span class="ok">[  OK  ]</span> session established</p>
+            <p><span class="ok">[  OK  ]</span> opening secure shell…</p>
+          </div>
+
+          <div class="success">
+            <div class="success__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2 class="success__title">you're in.</h2>
+            <p class="success__desc" id="welcomeText">
+              <span class="dim">//</span> welcome to SMS Adda — taking you in now…
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ---------- STATUS BAR ---------- -->
+  <footer class="os__status" aria-label="Status">
+    <span class="status__mode" id="statusMode">NORMAL</span>
+    <span class="status__item">~/login</span>
+    <span class="status__item status__hide-sm">utf-8</span>
+    <span class="status__item status__hide-sm">unix</span>
+    <span class="status__spacer"></span>
+    <span class="status__item status__hide-sm">nepal · +977</span>
+    <span class="status__item" id="statusState">ready</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     BOOT SEQUENCE (short — this is login, not landing)
+     ========================================================= */
+  var boot = document.getElementById("boot");
+  var bootLines = document.getElementById("boot__lines");
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var bootMsg = [
+    { t: "initializing secure shell…", c: "dim" },
+    { t: "[  OK  ] /dev/tty/01 ready", c: "ok" },
+    { t: "[  OK  ] auth subsystem online", c: "ok" },
+    { t: "[  OK  ] waiting for identity", c: "ok" }
+  ];
+
+  async function runBoot() {
+    for (var i = 0; i < bootMsg.length; i++) {
+      var line = document.createElement("div");
+      line.className = "boot-line";
+      line.innerHTML = '<span class="' + bootMsg[i].c + '">' + bootMsg[i].t + '</span>';
+      bootLines.appendChild(line);
+      if (!reduced) await new Promise(function (r) { setTimeout(r, 90); });
+    }
+    var cursor = document.createElement("div");
+    cursor.className = "boot-line";
+    cursor.innerHTML = '$ <span class="cursor-blink"></span>';
+    bootLines.appendChild(cursor);
+    await new Promise(function (r) { setTimeout(r, reduced ? 100 : 500); });
+    boot.classList.add("done");
+    setTimeout(function () { boot.style.display = "none"; }, 400);
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    Promise.race([
+      document.fonts.ready,
+      new Promise(function (r) { setTimeout(r, 400); })
+    ]).then(runBoot);
+  } else {
+    setTimeout(runBoot, 250);
+  }
+
+  /* =========================================================
+     CONFIG
+     ========================================================= */
+  var WORKER_URL = "https://smsbomber.ethical-laxman.workers.dev/";
+  var MAX_OTP = 6;
+
+  /* =========================================================
+     DOM
+     ========================================================= */
+  var viewIdentity = document.getElementById("view-identity");
+  var viewVerify   = document.getElementById("view-verify");
+  var viewSuccess  = document.getElementById("view-success");
+
+  var identityForm = document.getElementById("identityForm");
+  var phoneInput   = document.getElementById("phone");
+  var phoneRow     = document.getElementById("phoneRow");
+  var phoneError   = document.getElementById("phoneError");
+  var sendCodeBtn  = document.getElementById("sendCodeBtn");
+
+  var otpForm      = document.getElementById("otpForm");
+  var otpInputs    = Array.prototype.slice.call(document.querySelectorAll(".otp__input"));
+  var otpError     = document.getElementById("otpError");
+  var verifyBtn    = document.getElementById("verifyBtn");
+  var changeNumberBtn = document.getElementById("changeNumberBtn");
+  var resendLink   = document.getElementById("resendLink");
+  var resendText   = document.getElementById("resendText");
+
+  var phoneDisplay = document.getElementById("phoneDisplay");
+  var welcomeText  = document.getElementById("welcomeText");
+
+  var identityLog  = document.getElementById("identityLog");
+  var verifyLog    = document.getElementById("verifyLog");
+
+  var statusMode   = document.getElementById("statusMode");
+  var statusState  = document.getElementById("statusState");
+
+  /* =========================================================
+     STATE
+     ========================================================= */
+  var state = {
+    phone: "",
+    sending: false,
+    verifying: false,
+    resendTimer: null,
+    resendSeconds: 30
+  };
+
+  /* =========================================================
+     UTILS
+     ========================================================= */
+  function isValidNepaliPhone(v) { return /^(98|97)\d{8}$/.test(v); }
+  function isValidOtp(v) { return /^\d{6}$/.test(v); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function pad(n, w) { n = String(n); while (n.length < w) n = "0" + n; return n; }
+  function nowStamp() {
+    var d = new Date();
+    return pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2) + ":" + pad(d.getSeconds(), 2);
+  }
+
+  function logLine(container, text, kind) {
+    var line = document.createElement("div");
+    line.className = "log__line" + (kind ? " " + kind : " info");
+    line.innerHTML = '<span class="ts">[' + nowStamp() + ']</span><span class="msg"></span>';
+    line.querySelector(".msg").textContent = text;
+    container.appendChild(line);
+  }
+  function clearLog(container) { container.innerHTML = ""; }
+
+  /* =========================================================
+     VIEW SWITCHING
+     ========================================================= */
+  function showView(name) {
+    viewIdentity.classList.toggle("active", name === "identity");
+    viewVerify.classList.toggle("active", name === "verify");
+    viewSuccess.classList.toggle("active", name === "success");
+    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+  }
+
+  function setStatusMode(mode, stateText) {
+    statusMode.textContent = mode;
+    if (stateText) statusState.textContent = stateText;
+  }
+
+  /* =========================================================
+     IDENTITY VALIDATION
+     ========================================================= */
+  function validatePhone(show) {
+    var v = phoneInput.value.replace(/\D/g, "");
+    var ok = isValidNepaliPhone(v);
+    if (show !== false) {
+      phoneRow.classList.toggle("error", !ok);
+      phoneError.classList.toggle("show", !ok);
+    }
+    return ok;
+  }
+
+  phoneInput.addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+    if (this.value.length === 10) validatePhone(false);
+    else { phoneRow.classList.remove("error"); phoneError.classList.remove("show"); }
+  });
+  phoneInput.addEventListener("keydown", function (e) {
+    if (["e","E","+","-",".",","].indexOf(e.key) !== -1) e.preventDefault();
+  });
+
+  /* =========================================================
+     SEND CODE
+     ========================================================= */
+  async function sendCode() {
+    if (state.sending) return;
+    if (!validatePhone(true)) { phoneInput.focus(); return; }
+
+    state.sending = true;
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.innerHTML = '<span class="spinner"></span><span>dispatching…</span>';
+    setStatusMode("SENDING", "dispatching");
+
+    clearLog(identityLog);
+    var phone = phoneInput.value.replace(/\D/g, "");
+    state.phone = phone;
+
+    logLine(identityLog, "connecting to smsadda.vercel.app…", "info");
+    await sleep(320);
+    logLine(identityLog, "auth: dispatching code to +977-" + phone, "info");
+    await sleep(280);
+
+    try {
+      var res = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone, gateway: "auto" })
+      });
+      var data = await res.json();
+
+      if (data.ok) {
+        logLine(identityLog, "code delivered — check your inbox", "ok");
+        await sleep(280);
+        phoneDisplay.textContent = "+977-" + phone;
+        setStatusMode("VERIFY", "waiting for code");
+        showView("verify");
+        startResendTimer();
+        setTimeout(function () { otpInputs[0].focus(); }, 200);
+      } else {
+        logLine(identityLog, "dispatch failed: " + (data.msg || "unknown"), "err");
+        showPhoneError(data.msg || "could not send code — try again");
+        resetSendButton();
+      }
+    } catch (err) {
+      logLine(identityLog, "network error: " + (err.message || "failed"), "err");
+      showPhoneError("network error — check your connection");
+      resetSendButton();
+    }
+  }
+
+  function resetSendButton() {
+    state.sending = false;
+    sendCodeBtn.disabled = false;
+    sendCodeBtn.innerHTML = "<span>send verification code</span>";
+    setStatusMode("NORMAL", "ready");
+  }
+
+  function showPhoneError(msg) {
+    phoneRow.classList.add("error");
+    phoneError.textContent = msg && msg.length < 80 ? msg : "invalid format — must be 10 digits starting with 98 or 97";
+    phoneError.classList.add("show");
+  }
+
+  identityForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    sendCode();
+  });
+
+  /* =========================================================
+     OTP INPUTS
+     ========================================================= */
+  function otpValue() {
+    return otpInputs.map(function (i) { return i.value; }).join("");
+  }
+  function updateVerifyState() {
+    var v = otpValue();
+    verifyBtn.disabled = v.length !== MAX_OTP;
+    otpInputs.forEach(function (inp) {
+      inp.classList.toggle("filled", inp.value.length === 1);
+    });
+  }
+
+  otpInputs.forEach(function (input, idx) {
+    input.addEventListener("input", function () {
+      var v = this.value.replace(/\D/g, "").slice(-1);
+      this.value = v;
+      if (v && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+      otpError.classList.remove("show");
+      updateVerifyState();
+      if (otpValue().length === MAX_OTP) {
+        setTimeout(function () {
+          if (otpValue().length === MAX_OTP) otpForm.requestSubmit();
+        }, 200);
+      }
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Backspace" && !this.value && idx > 0) {
+        otpInputs[idx - 1].focus();
+        otpInputs[idx - 1].value = "";
+        updateVerifyState();
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "ArrowLeft" && idx > 0) { otpInputs[idx - 1].focus(); e.preventDefault(); return; }
+      if (e.key === "ArrowRight" && idx < otpInputs.length - 1) { otpInputs[idx + 1].focus(); e.preventDefault(); return; }
+    });
+    input.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData("text");
+      var digits = paste.replace(/\D/g, "").slice(0, MAX_OTP).split("");
+      digits.forEach(function (d, i) { if (otpInputs[i]) otpInputs[i].value = d; });
+      var next = otpInputs[Math.min(digits.length, otpInputs.length - 1)];
+      if (next) next.focus();
+      updateVerifyState();
+    });
+    input.addEventListener("focus", function () {
+      var t = this;
+      setTimeout(function () { t.select(); }, 0);
+    });
+  });
+
+  /* =========================================================
+     VERIFY SUBMIT
+     ========================================================= */
+  otpForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (state.verifying) return;
+
+    var code = otpValue();
+    if (!isValidOtp(code)) {
+      otpError.classList.add("show");
+      return;
+    }
+
+    state.verifying = true;
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner"></span><span>authenticating…</span>';
+    setStatusMode("AUTH", "verifying");
+
+    clearLog(verifyLog);
+    logLine(verifyLog, "checking code " + code.replace(/./g, "•") + "…", "info");
+    await sleep(500);
+    logLine(verifyLog, "session token issued", "ok");
+    await sleep(300);
+    logLine(verifyLog, "mounting user home…", "ok");
+    await sleep(280);
+
+    onSuccess(state.phone);
+  });
+
+  function onSuccess(phone) {
+    try {
+      localStorage.setItem("smsadda_user", JSON.stringify({
+        phone: "+977" + phone,
+        signedInAt: new Date().toISOString()
+      }));
+    } catch (err) {}
+
+    setStatusMode("AUTH", "authenticated");
+    welcomeText.innerHTML = '<span class="dim">//</span> welcome, +977-' + phone + ' — opening secure shell…';
+    showView("success");
+
+    setTimeout(function () {
+      window.location.href = "/app.html";
+    }, 1800);
+  }
+
+  /* =========================================================
+     RESEND TIMER
+     ========================================================= */
+  function startResendTimer() {
+    state.resendSeconds = 30;
+    resendLink.disabled = true;
+    updateResendText();
+    if (state.resendTimer) clearInterval(state.resendTimer);
+    state.resendTimer = setInterval(function () {
+      state.resendSeconds -= 1;
+      if (state.resendSeconds <= 0) {
+        clearInterval(state.resendTimer);
+        state.resendTimer = null;
+        resendLink.disabled = false;
+        resendText.textContent = "resend code";
+      } else {
+        updateResendText();
+      }
+    }, 1000);
+  }
+  function updateResendText() {
+    resendText.textContent = "resend in " + state.resendSeconds + "s";
+  }
+
+  resendLink.addEventListener("click", function () {
+    if (resendLink.disabled) return;
+    otpInputs.forEach(function (i) { i.value = ""; i.classList.remove("filled"); });
+    updateVerifyState();
+    otpInputs[0].focus();
+    startResendTimer();
+    clearLog(verifyLog);
+    logLine(verifyLog, "resend requested — dispatching new code…", "info");
+    fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: state.phone, gateway: "auto" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) logLine(verifyLog, "code re-dispatched", "ok");
+      else logLine(verifyLog, "resend failed: " + (data.msg || "unknown"), "err");
+    })
+    .catch(function (err) {
+      logLine(verifyLog, "resend error: " + (err.message || "failed"), "err");
+    });
+  });
+
+  /* =========================================================
+     CHANGE NUMBER
+     ========================================================= */
+  changeNumberBtn.addEventListener("click", function () {
+    otpInputs.forEach(function (i) { i.value = ""; i.classList.remove("filled"); });
+    updateVerifyState();
+    if (state.resendTimer) { clearInterval(state.resendTimer); state.resendTimer = null; }
+    resendLink.disabled = true;
+    clearLog(verifyLog);
+    showView("identity");
+    setTimeout(function () { phoneInput.focus(); }, 200);
+    setStatusMode("NORMAL", "ready");
+  });
+
+  /* =========================================================
+     iOS double-tap zoom guard
+     ========================================================= */
+  var lastTouch = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTouch < 350) {
+      var el = e.target && e.target.closest && e.target.closest("button, a");
+      if (el) e.preventDefault();
+    }
+    lastTouch = now;
+  }, { passive: false });
+
+})();
+</script>
+</body>
+</html>

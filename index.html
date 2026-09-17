@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SMS Adda — root@smsadda:~/landing</title>
+<meta name="description" content="SMS Adda — security research playground built in Nepal. Educational purposes only." />
+<meta name="author" content="Laxman Poudel" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SMS Adda" />
+<meta name="format-detection" content="telephone=no" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://smsadda.vercel.app/" />
+<meta property="og:title" content="SMS Adda — security research playground" />
+<meta property="og:description" content="Mapping vulnerabilities across Nepal's SMS infrastructure." />
+<meta property="og:image" content="https://smsadda.vercel.app/og-image.png" />
+<meta property="og:site_name" content="SMS Adda" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="SMS Adda — security research playground" />
+<meta name="twitter:description" content="Mapping vulnerabilities across Nepal's SMS infrastructure." />
+
+<link rel="canonical" href="https://smsadda.vercel.app/" />
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   TOKENS — terminal palette
+   ========================================================= */
+:root {
+  --bg:        #0a0a0a;
+  --panel:     #0f0f0f;
+  --panel-2:   #131313;
+  --cream:     #F4F1E8;
+  --phosphor:  #DFFF00;      /* signal green (brand) */
+  --phosphor-2:#c6e600;
+  --orange:    #FF4D00;      /* accent (brand) */
+  --orange-2:  #FF8A3D;
+  --green:     #4ade80;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --dim:       rgba(223,255,0,.5);
+  --dim-2:     rgba(244,241,232,.4);
+  --soft:      #c9c9a8;
+  --line:      rgba(223,255,0,.15);
+  --line-2:    rgba(244,241,232,.1);
+
+  --font: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --ease:     cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+
+  --chrome-h: 40px;
+  --status-h: 28px;
+  --sidebar-w: 260px;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--soft);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--phosphor); color: var(--bg); }
+
+a:focus, button:focus { outline: none; }
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--phosphor);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   BOOT OVERLAY
+   ========================================================= */
+#boot {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(16px, 6vw, 80px);
+  font-size: 13px;
+  color: var(--phosphor);
+  transition: opacity .4s var(--ease-out);
+}
+#boot.done {
+  opacity: 0;
+  pointer-events: none;
+}
+#boot__inner {
+  max-width: 720px;
+  width: 100%;
+  margin-inline: auto;
+}
+#boot pre {
+  margin: 0 0 24px;
+  font-family: var(--font);
+  font-size: clamp(6px, 1.6vw, 11px);
+  line-height: 1.15;
+  color: var(--phosphor);
+  font-weight: 700;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#boot pre::-webkit-scrollbar { display: none; }
+.boot-line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.6em;
+}
+.boot-line .ok { color: var(--green); }
+.boot-line .warn { color: var(--amber); }
+.boot-line .accent { color: var(--orange-2); }
+.boot-line .dim { color: var(--dim-2); }
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--phosphor);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* =========================================================
+   OS SHELL
+   ========================================================= */
+.os {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* --- Chrome bar (top) --- */
+.os__chrome {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--chrome-h);
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: clamp(12px, 2vw, 20px);
+  z-index: 100;
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+.chrome__dots {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.chrome__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+.chrome__dot--r { background: var(--orange); }
+.chrome__dot--y { background: var(--amber); }
+.chrome__dot--g { background: var(--green); }
+
+.chrome__title {
+  flex: 1;
+  text-align: center;
+  color: var(--phosphor);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.chrome__title .user { color: var(--phosphor); }
+.chrome__title .sep { color: var(--dim); }
+.chrome__title .path { color: var(--orange-2); }
+.chrome__title .dim { color: var(--dim); }
+
+.chrome__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.chrome__links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.chrome__link {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  color: var(--dim);
+  transition: all .2s var(--ease);
+}
+.chrome__link:hover {
+  color: var(--phosphor);
+  border-color: var(--line);
+  background: rgba(223,255,0,.04);
+}
+.chrome__link--cta {
+  color: var(--bg);
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+}
+.chrome__link--cta:hover {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+  color: var(--bg);
+}
+
+@media (max-width: 720px) {
+  .chrome__links .chrome__link:not(.chrome__link--cta) { display: none; }
+  .chrome__status { display: none; }
+}
+@media (max-width: 420px) {
+  .chrome__title { font-size: 10px; }
+  .chrome__link--cta .label { display: none; }
+}
+
+/* --- Layout (sidebar + main) --- */
+.os__body {
+  flex: 1 1 auto;
+  margin-top: calc(var(--chrome-h) + env(safe-area-inset-top, 0px));
+  margin-bottom: calc(var(--status-h) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  min-height: 0;
+}
+
+.os__sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 20px 0;
+  font-size: 12px;
+  position: sticky;
+  top: calc(var(--chrome-h) + env(safe-area-inset-top, 0px));
+  height: calc(100dvh - var(--chrome-h) - var(--status-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.os__sidebar::-webkit-scrollbar { width: 4px; }
+.os__sidebar::-webkit-scrollbar-thumb { background: var(--line); }
+
+@media (max-width: 900px) {
+  .os__sidebar { display: none; }
+}
+
+.sidebar__group { margin-bottom: 20px; }
+.sidebar__label {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 0 20px;
+  margin-bottom: 6px;
+}
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 20px;
+  color: var(--soft);
+  font-size: 12px;
+  transition: all .15s var(--ease);
+  border-left: 2px solid transparent;
+}
+.sidebar__link::before {
+  content: "▸";
+  color: var(--dim);
+  font-size: 10px;
+  transition: color .15s var(--ease);
+}
+.sidebar__link:hover {
+  background: rgba(223,255,0,.04);
+  color: var(--phosphor);
+  border-left-color: var(--phosphor);
+}
+.sidebar__link:hover::before { color: var(--phosphor); }
+.sidebar__link.active {
+  color: var(--phosphor);
+  border-left-color: var(--phosphor);
+  background: rgba(223,255,0,.05);
+}
+.sidebar__link.active::before { color: var(--phosphor); }
+
+.sidebar__stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 20px;
+  font-size: 11px;
+  color: var(--dim);
+}
+.sidebar__stat b {
+  color: var(--phosphor);
+  font-weight: 500;
+}
+
+.os__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* --- Status bar (bottom) --- */
+.os__status {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--status-h);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding-inline: clamp(12px, 2vw, 20px);
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  z-index: 100;
+}
+.status__mode {
+  background: var(--phosphor);
+  color: var(--bg);
+  padding: 2px 8px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+.status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.status__item::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .6;
+}
+.status__spacer { flex: 1; min-width: 0; }
+@media (max-width: 640px) {
+  .status__hide-sm { display: none; }
+}
+
+/* =========================================================
+   TERMINAL SECTIONS
+   ========================================================= */
+.tsection {
+  min-height: calc(100dvh - var(--chrome-h) - var(--status-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  padding: clamp(24px, 4vw, 48px) clamp(20px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--line-2);
+  position: relative;
+  overflow: hidden;
+}
+.tsection:last-child { border-bottom: 0; }
+
+/* Command prompt line */
+.tsection__cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: clamp(16px, 2.4vw, 28px);
+}
+.tsection__cmd .ps1 {
+  color: var(--phosphor);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.tsection__cmd .path {
+  color: var(--orange-2);
+}
+.tsection__cmd .sig {
+  color: var(--phosphor);
+}
+.tsection__cmd .arg {
+  color: var(--soft);
+}
+.tsection__cmd .comment {
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* Output block */
+.tsection__out {
+  font-size: clamp(13px, 1.3vw, 15px);
+  line-height: 1.7;
+  color: var(--soft);
+}
+.tsection__out p { margin: 0 0 12px; }
+.tsection__out p:last-child { margin-bottom: 0; }
+.tsection__out strong { color: var(--phosphor); font-weight: 600; }
+.tsection__out em { color: var(--orange-2); font-style: normal; }
+
+/* Big display heading inside sections */
+.tsection__title {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(28px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0 0 clamp(12px, 1.6vw, 20px);
+  color: var(--cream);
+  text-transform: none;
+}
+.tsection__title .dim { color: var(--dim); }
+.tsection__title .hi  { color: var(--phosphor); }
+.tsection__title .warn { color: var(--orange); }
+
+/* Divider inside output */
+.out-hr {
+  border: 0;
+  border-top: 1px dashed var(--line);
+  margin: 20px 0;
+}
+
+/* Key-value rows */
+.kv {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) 1fr;
+  gap: 4px 20px;
+  font-size: 12px;
+  margin: 16px 0;
+}
+.kv dt { color: var(--dim); }
+.kv dd { margin: 0; color: var(--soft); }
+
+/* =========================================================
+   ASCII ART / HERO
+   ========================================================= */
+.hero-art {
+  font-family: var(--font);
+  font-size: clamp(7px, 1.4vw, 13px);
+  line-height: 1.1;
+  color: var(--phosphor);
+  font-weight: 700;
+  margin: 0 0 clamp(16px, 2vw, 24px);
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+  text-shadow: 0 0 12px rgba(223,255,0,.25);
+}
+.hero-art::-webkit-scrollbar { display: none; }
+
+/* =========================================================
+   LIST STYLES (gateways)
+   ========================================================= */
+.term-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12.5px;
+}
+.term-list li {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+  align-items: baseline;
+}
+.term-list li:last-child { border-bottom: 0; }
+.term-list .n {
+  color: var(--dim);
+}
+.term-list .name {
+  color: var(--cream);
+  font-weight: 500;
+}
+.term-list .name .slash { color: var(--dim); }
+.term-list .meta {
+  color: var(--orange-2);
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+.term-list .ok { color: var(--green); }
+.term-list .warn { color: var(--amber); }
+
+@media (max-width: 520px) {
+  .term-list li { grid-template-columns: 30px 1fr; row-gap: 4px; }
+  .term-list .meta { grid-column: 2; text-align: left; }
+}
+
+/* =========================================================
+   PROGRESS BARS (ascii)
+   ========================================================= */
+.ascii-bar {
+  color: var(--phosphor);
+  font-size: 12px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.ascii-bar .empty { color: var(--dim); }
+
+/* =========================================================
+   QUOTE BLOCK (disclaimer)
+   ========================================================= */
+.quote {
+  border-left: 2px solid var(--orange);
+  padding: 4px 0 4px 20px;
+  margin: 20px 0;
+  color: var(--cream);
+  font-size: clamp(13px, 1.3vw, 15px);
+  line-height: 1.7;
+}
+.quote .warn { color: var(--orange); font-weight: 600; }
+
+/* =========================================================
+   CTA BUTTON (terminal style)
+   ========================================================= */
+.tbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  min-height: 46px;
+  border: 1px solid var(--phosphor);
+  background: transparent;
+  color: var(--phosphor);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  transition: all .18s var(--ease);
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.tbtn:hover {
+  background: var(--phosphor);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(223,255,0,.35);
+}
+.tbtn::before { content: "$"; opacity: .6; margin-right: -2px; }
+.tbtn--orange { border-color: var(--orange); color: var(--orange); }
+.tbtn--orange:hover {
+  background: var(--orange);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(255,77,0,.4);
+}
+.tbtn--filled {
+  background: var(--phosphor);
+  color: var(--bg);
+}
+.tbtn--filled:hover {
+  background: var(--phosphor-2);
+  border-color: var(--phosphor-2);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(18px, 2.4vw, 28px);
+}
+
+/* =========================================================
+   TYPING EFFECT
+   ========================================================= */
+.type-target {
+  display: inline-block;
+  min-height: 1em;
+  white-space: pre-wrap;
+}
+.type-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--phosphor);
+  margin-left: 3px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .type-cursor, .cursor-blink { animation: none; opacity: 1; }
+}
+
+/* =========================================================
+   SCANLINE OVERLAY (subtle CRT effect)
+   ========================================================= */
+.os::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(223,255,0,.015) 0px,
+    rgba(223,255,0,.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 9998;
+  mix-blend-mode: screen;
+  opacity: .5;
+}
+@media (prefers-reduced-motion: reduce), (max-width: 480px) {
+  .os::before { display: none; }
+}
+
+/* =========================================================
+   REVEAL
+   ========================================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ BOOT OVERLAY ============================ -->
+<div id="boot" aria-hidden="true">
+  <div id="boot__inner">
+    <pre>
+   ███████╗███╗   ███╗███████╗     █████╗ ██████╗ ██████╗  █████╗ 
+   ██╔════╝████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗
+   ███████╗██╔████╔██║███████╗    ███████║██║  ██║██║  ██║███████║
+   ╚════██║██║╚██╔╝██║╚════██║    ██╔══██║██║  ██║██║  ██║██╔══██║
+   ███████║██║ ╚═╝ ██║███████║    ██║  ██║██████╔╝██████╔╝██║  ██║
+   ╚══════╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝</pre>
+    <div id="boot__lines"></div>
+  </div>
+</div>
+
+<!-- ============================ OS SHELL ============================ -->
+<div class="os">
+
+  <!-- ---------- CHROME BAR ---------- -->
+  <header class="os__chrome">
+    <div class="chrome__dots" aria-hidden="true">
+      <span class="chrome__dot chrome__dot--r"></span>
+      <span class="chrome__dot chrome__dot--y"></span>
+      <span class="chrome__dot chrome__dot--g"></span>
+    </div>
+
+    <div class="chrome__title">
+      <span class="user">root@smsadda</span><span class="sep">:</span><span class="path">~/landing</span>
+      <span class="dim"> — ssh (80×24)</span>
+    </div>
+
+    <div class="chrome__status" aria-hidden="true">online</div>
+
+    <nav class="chrome__links" aria-label="Primary">
+      <a class="chrome__link" href="#purpose">purpose</a>
+      <a class="chrome__link" href="#gateways">gateways</a>
+      <a class="chrome__link" href="#security">security</a>
+      <a class="chrome__link" href="/about.html">about</a>
+      <a class="chrome__link chrome__link--cta" href="/login.html">
+        <span class="label">ssh in</span> <span aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- ---------- BODY ---------- -->
+  <div class="os__body">
+
+    <!-- Sidebar -->
+    <aside class="os__sidebar" aria-label="Navigation">
+      <div class="sidebar__group">
+        <div class="sidebar__label">~/landing</div>
+        <a class="sidebar__link active" href="#top">home</a>
+        <a class="sidebar__link" href="#purpose">purpose</a>
+        <a class="sidebar__link" href="#gateways">gateways</a>
+        <a class="sidebar__link" href="#about">about</a>
+        <a class="sidebar__link" href="#system">system</a>
+        <a class="sidebar__link" href="#security">security</a>
+        <a class="sidebar__link" href="#manifesto">manifesto</a>
+      </div>
+
+      <div class="sidebar__group">
+        <div class="sidebar__label">/var/log</div>
+        <a class="sidebar__link" href="#purpose">purpose.log</a>
+        <a class="sidebar__link" href="#gateways">gateways.log</a>
+        <a class="sidebar__link" href="#security">security.log</a>
+      </div>
+
+      <div class="sidebar__group">
+        <div class="sidebar__label">/system</div>
+        <div class="sidebar__stat"><span>status</span><b>● live</b></div>
+        <div class="sidebar__stat"><span>region</span><b>+977</b></div>
+        <div class="sidebar__stat"><span>gateways</span><b>6/6</b></div>
+        <div class="sidebar__stat"><span>uptime</span><b>99.9%</b></div>
+        <div class="sidebar__stat"><span>version</span><b>v1.0.0</b></div>
+      </div>
+
+      <div class="sidebar__group">
+        <div class="sidebar__label">/links</div>
+        <a class="sidebar__link" href="/about.html">../about.html</a>
+        <a class="sidebar__link" href="/terms.html">../terms.html</a>
+        <a class="sidebar__link" href="/privacy.html">../privacy.html</a>
+        <a class="sidebar__link" href="/login.html">../login.html</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="os__main" id="top">
+
+      <!-- =========== SECTION 01: HERO =========== -->
+      <section class="tsection" data-cmd="whoami">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">whoami</span>
+          <span class="comment">// identity check</span>
+        </div>
+
+        <pre class="hero-art">   ███████╗███╗   ███╗███████╗
+   ██╔════╝████╗ ████║██╔════╝
+   ███████╗██╔████╔██║███████╗
+   ╚════██║██║╚██╔╝██║╚════██║
+   ███████║██║ ╚═╝ ██║███████║
+   ╚══════╝╚═╝     ╚═╝╚══════╝</pre>
+
+        <h1 class="tsection__title reveal">
+          <span class="dim">&gt;</span> SMS is a <span class="warn">mess.</span>
+        </h1>
+
+        <div class="tsection__out reveal">
+          <p>
+            <strong>SMS Adda</strong> is a security research playground that maps
+            vulnerabilities and easy-to-detect faults across Nepal's SMS infrastructure
+            — and documents what that means for defenders.
+          </p>
+          <p class="dim" style="color: var(--dim); font-size: 12px; margin-top: 14px;">
+            // educational research · responsible disclosure · +977
+          </p>
+
+          <div class="btn-row">
+            <a class="tbtn tbtn--filled" href="/login.html">enter adda</a>
+            <a class="tbtn" href="#purpose">cat purpose.md</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 02: PURPOSE =========== -->
+      <section class="tsection" id="purpose" data-cmd="cat purpose.md">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">cat</span>
+          <span class="path">~/landing/purpose.md</span>
+          <span class="comment">// why we built this</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">#</span> Purpose
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            The purpose of <strong>SMS Adda</strong> is to understand how
+            <em>vulnerable</em> and how <em>easy to detect</em> faults and weak points
+            are inside automated SMS systems. During this research we identified several
+            weak points across different platforms — and we document them here.
+          </p>
+
+          <hr class="out-hr"/>
+
+          <ul class="term-list">
+            <li>
+              <span class="n">01</span>
+              <span class="name">vulnerability <span class="slash">//</span> how systems break</span>
+              <span class="meta">queue · rate limit · validation</span>
+            </li>
+            <li>
+              <span class="n">02</span>
+              <span class="name">detection <span class="slash">//</span> how easy to spot</span>
+              <span class="meta">visible · observable · reproducible</span>
+            </li>
+            <li>
+              <span class="n">03</span>
+              <span class="name">disclosure <span class="slash">//</span> what we publish</span>
+              <span class="meta">patterns · not exploits</span>
+            </li>
+          </ul>
+
+          <p class="dim" style="color: var(--dim); font-size: 12px; margin-top: 20px;">
+            // goal: defensive literacy, not a weaponised tool
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 03: GATEWAYS =========== -->
+      <section class="tsection" id="gateways" data-cmd="ls -la gateways/">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">ls -la</span>
+          <span class="path">~/gateways/</span>
+          <span class="comment">// 6 mapped systems</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">$</span> Six weak points <span class="hi">mapped.</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p style="color: var(--dim); font-size: 12px; margin-bottom: 18px;">
+            // names are the subject of public security research — not targets for abuse
+          </p>
+
+          <ul class="term-list">
+            <li><span class="n">GW-01</span><span class="name">ClampHook <span class="slash">/</span> registration</span><span class="meta warn">session flaw</span></li>
+            <li><span class="n">GW-02</span><span class="name">Ambition Guru <span class="slash">/</span> education</span><span class="meta warn">rate-limit gap</span></li>
+            <li><span class="n">GW-03</span><span class="name">MeroDoctor <span class="slash">/</span> health</span><span class="meta warn">session flaw</span></li>
+            <li><span class="n">GW-04</span><span class="name">College Info <span class="slash">/</span> portal</span><span class="meta warn">unauthed otp</span></li>
+            <li><span class="n">GW-05</span><span class="name">Pariksha <span class="slash">/</span> exams</span><span class="meta warn">unauthed otp</span></li>
+            <li><span class="n">GW-06</span><span class="name">QuickConnect <span class="slash">/</span> service</span><span class="meta warn">registration</span></li>
+          </ul>
+
+          <hr class="out-hr"/>
+
+          <pre class="ascii-bar">scan [<span style="color:var(--phosphor)">████████████████</span>] 6/6 targets mapped · <span style="color:var(--green)">complete</span></pre>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 04: DISCLAIMER =========== -->
+      <section class="tsection" data-cmd="cat DISCLAIMER">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">cat</span>
+          <span class="path">DISCLAIMER</span>
+          <span class="comment">// read carefully</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="warn">!!</span> Educational use only.
+        </h2>
+
+        <div class="tsection__out reveal">
+          <div class="quote">
+            SMS Adda exists for <strong>education</strong> and for
+            <strong>testing</strong>. Everything here is meant to be studied in
+            controlled environments, on your own numbers, and only with consent.
+          </div>
+
+          <p>
+            <span class="warn">[warn]</span>
+            <strong>Do not use this project to harm others.</strong> Do not target
+            numbers that are not yours. Do not use anything learned here to harass,
+            flood, or abuse anyone.
+          </p>
+
+          <p>
+            <span class="warn">[warn]</span>
+            We are <strong>not responsible for any misuse</strong> of this project
+            or the knowledge shared on it. Use at your own risk, and use it
+            responsibly.
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 05: INTRO =========== -->
+      <section class="tsection" id="about" data-cmd="./intro --verbose">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">./intro</span>
+          <span class="comment">--verbose</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">//</span> We built a digital <span class="hi">adda.</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            An <em>adda</em> is where people gather to talk, argue, and figure things
+            out. SMS Adda is the same idea applied to SMS infrastructure — a place to
+            look closely at how automated messaging behaves.
+          </p>
+
+          <dl class="kv">
+            <dt>// understand</dt>
+            <dd>learn how automated SMS systems behave, from queue to delivery</dd>
+            <dt>// observe</dt>
+            <dd>study traffic patterns and the behaviour of systems carrying them</dd>
+            <dt>// protect</dt>
+            <dd>turn observation into defensive design and abuse prevention</dd>
+          </dl>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 06: SYSTEM =========== -->
+      <section class="tsection" id="system" data-cmd="htop --modules">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">htop</span>
+          <span class="comment">--modules</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          <span class="dim">$</span> What's inside the <span class="hi">system.</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <ul class="term-list">
+            <li><span class="n">01</span><span class="name">SMS Research <span class="slash">//</span> controlled environment</span><span class="meta">research</span></li>
+            <li><span class="n">02</span><span class="name">Traffic Analysis <span class="slash">//</span> read the shape</span><span class="meta">analysis</span></li>
+            <li><span class="n">03</span><span class="name">System Behaviour <span class="slash">//</span> what it does</span><span class="meta">behaviour</span></li>
+            <li><span class="n">04</span><span class="name">Security Awareness <span class="slash">//</span> make it legible</span><span class="meta">awareness</span></li>
+            <li><span class="n">05</span><span class="name">Responsible Testing <span class="slash">//</span> controlled targets</span><span class="meta">ethics</span></li>
+          </ul>
+
+          <hr class="out-hr"/>
+
+          <pre class="ascii-bar">modules [<span style="color:var(--phosphor)">███████████████░</span>] 5/5 loaded · <span style="color:var(--green)">ready</span></pre>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 07: NEPAL =========== -->
+      <section class="tsection" data-cmd="neofetch">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">neofetch</span>
+          <span class="comment">// system origin</span>
+        </div>
+
+        <h2 class="tsection__title reveal" style="font-size: clamp(48px, 14vw, 180px); line-height: .85;">
+          <span class="hi">+977</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <dl class="kv">
+            <dt>OS</dt><dd>SMS Adda v1.0.0</dd>
+            <dt>Host</dt><dd>Nepal (+977)</dd>
+            <dt>Kernel</dt><dd>security-research</dd>
+            <dt>Uptime</dt><dd>99.9%</dd>
+            <dt>Gateways</dt><dd>6 available</dd>
+            <dt>Shell</dt><dd>/bin/research</dd>
+          </dl>
+
+          <p style="margin-top: 20px;">
+            SMS Adda is an independent project conceived in Nepal. It exists because
+            the country's messaging infrastructure deserves to be understood by the
+            people who live inside it — not only by vendors and gatekeepers.
+          </p>
+          <p class="dim" style="color: var(--dim); font-size: 12px;">
+            // no telecom partnership implied · local research project
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 08: SECURITY =========== -->
+      <section class="tsection" id="security" data-cmd="sudo ./security --audit">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">sudo</span>
+          <span class="path">./security</span>
+          <span class="comment">--audit</span>
+        </div>
+
+        <h2 class="tsection__title reveal">
+          Security <span class="dim">is not</span> <span class="hi">optional.</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <ul class="term-list">
+            <li><span class="n">01</span><span class="name">Identify <span class="slash">//</span> find the fault</span><span class="meta ok">✓ pass</span></li>
+            <li><span class="n">02</span><span class="name">Understand <span class="slash">//</span> learn the pattern</span><span class="meta ok">✓ pass</span></li>
+            <li><span class="n">03</span><span class="name">Defend <span class="slash">//</span> close the loop</span><span class="meta ok">✓ pass</span></li>
+          </ul>
+
+          <hr class="out-hr"/>
+
+          <p style="font-size: clamp(14px, 1.6vw, 18px); color: var(--cream);">
+            Don't just block it.<br/>
+            <span class="hi" style="color: var(--phosphor); font-weight: 600;">Understand it.</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 09: MANIFESTO =========== -->
+      <section class="tsection" id="manifesto" data-cmd="cat MANIFESTO">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">cat</span>
+          <span class="path">MANIFESTO</span>
+          <span class="comment">// signed</span>
+        </div>
+
+        <div class="tsection__out reveal">
+          <p class="tsection__title" style="font-size: clamp(28px, 6vw, 64px); line-height: 1.05; margin: 0 0 20px;">
+            <span class="dim">&gt;</span> SMS is <span class="warn">old.</span><br/>
+            <span class="dim">&gt;</span> The internet <span class="hi">is not.</span><br/>
+            <span class="dim">&gt;</span> So we study both.
+          </p>
+
+          <p style="color: var(--dim); font-size: 12px;">— SMS Adda / 2026 · built in Nepal</p>
+        </div>
+      </section>
+
+      <!-- =========== SECTION 10: ENTER =========== -->
+      <section class="tsection" data-cmd="./enter --add a user">
+        <div class="tsection__cmd">
+          <span class="ps1">root@smsadda:~$</span>
+          <span class="arg">./enter</span>
+          <span class="comment">--adda</span>
+        </div>
+
+        <h2 class="tsection__title reveal" style="font-size: clamp(32px, 7vw, 88px);">
+          <span class="dim">$</span> Enter the <span class="hi">adda.</span>
+        </h2>
+
+        <div class="tsection__out reveal">
+          <p>
+            Ready when you are. Sign in with your phone number and watch the flow
+            live in a terminal-style trace.
+          </p>
+
+          <div class="btn-row">
+            <a class="tbtn tbtn--filled" href="/login.html">ssh in</a>
+            <a class="tbtn tbtn--orange" href="/about.html">cat about.md</a>
+          </div>
+
+          <hr class="out-hr" style="margin-top: 28px;"/>
+
+          <p style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim);">
+            tags: educational · security · research · +977
+          </p>
+
+          <p style="font-size: 11px; letter-spacing: .1em; color: var(--dim); margin-top: 20px;">
+            built by <a href="https://laxman-poudel.com.np" target="_blank" rel="noopener" style="color:var(--phosphor);border-bottom:1px solid currentColor;">Laxman Poudel</a> ·
+            © 2026 SMS Adda
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ---------- STATUS BAR ---------- -->
+  <footer class="os__status" aria-label="Status">
+    <span class="status__mode">NORMAL</span>
+    <span class="status__item">~/landing</span>
+    <span class="status__item status__hide-sm">utf-8</span>
+    <span class="status__item status__hide-sm">unix</span>
+    <span class="status__spacer"></span>
+    <span class="status__item status__hide-sm">nepal · +977</span>
+    <span class="status__item">gateways 6/6</span>
+    <span class="status__item">v1.0.0</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     BOOT SEQUENCE
+     ========================================================= */
+  var boot = document.getElementById("boot");
+  var bootLines = document.getElementById("boot__lines");
+
+  var lines = [
+    { t: "connecting to smsadda.vercel.app...", c: "dim" },
+    { t: "[  OK  ] system clock synchronized", c: "ok" },
+    { t: "[  OK  ] network interface eth0 up", c: "ok" },
+    { t: "[  OK  ] loading research modules", c: "ok" },
+    { t: "[ WARN ] running in experimental mode", c: "warn" },
+    { t: "[  OK  ] mounting /gateways (6/6)", c: "ok" },
+    { t: "[  OK  ] initializing rate limiter", c: "ok" },
+    { t: "[  OK  ] secure shell ready", c: "ok" },
+    { t: "", c: "" },
+    { t: "welcome to SMS ADDA — a security research playground", c: "accent" },
+    { t: "type and scroll to explore ↓", c: "dim" }
+  ];
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  async function runBoot() {
+    for (var i = 0; i < lines.length; i++) {
+      var line = document.createElement("div");
+      line.className = "boot-line";
+      var cls = lines[i].c;
+      var text = lines[i].t;
+
+      if (text) {
+        line.innerHTML = cls ? '<span class="' + cls + '">' + text + '</span>' : text;
+      } else {
+        line.innerHTML = "&nbsp;";
+      }
+      bootLines.appendChild(line);
+
+      if (reduced) continue;
+      await new Promise(function (r) { setTimeout(r, text ? 90 : 40); });
+    }
+
+    // Add blinking cursor
+    var cursorLine = document.createElement("div");
+    cursorLine.className = "boot-line";
+    cursorLine.innerHTML = '$ <span class="cursor-blink"></span>';
+    bootLines.appendChild(cursorLine);
+
+    await new Promise(function (r) { setTimeout(r, reduced ? 100 : 600); });
+    boot.classList.add("done");
+    setTimeout(function () { boot.style.display = "none"; }, 400);
+  }
+
+  // Kick off boot once fonts load (or 500ms, whichever first)
+  if (document.fonts && document.fonts.ready) {
+    Promise.race([
+      document.fonts.ready,
+      new Promise(function (r) { setTimeout(r, 500); })
+    ]).then(runBoot);
+  } else {
+    setTimeout(runBoot, 300);
+  }
+
+  /* =========================================================
+     SIDEBAR ACTIVE STATE
+     ========================================================= */
+  var sidebarLinks = document.querySelectorAll(".sidebar__link");
+  var sections = document.querySelectorAll(".tsection");
+
+  function updateSidebar() {
+    var y = window.scrollY + window.innerHeight * 0.35;
+    var current = null;
+    sections.forEach(function (s) {
+      if (s.offsetTop <= y) current = s.id || "top";
+    });
+
+    sidebarLinks.forEach(function (l) {
+      var href = l.getAttribute("href");
+      var id = href && href.startsWith("#") ? href.slice(1) : null;
+      l.classList.toggle("active", id === current);
+    });
+  }
+  window.addEventListener("scroll", updateSidebar, { passive: true });
+  updateSidebar();
+
+  /* =========================================================
+     REVEAL ON SCROLL
+     ========================================================= */
+  var reveals = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !reduced) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    reveals.forEach(function (el) { io.observe(el); });
+  } else {
+    reveals.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* =========================================================
+     SMOOTH SCROLL FOR ANCHORS
+     ========================================================= */
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      var href = a.getAttribute("href");
+      if (href === "#" || href.length < 2) return;
+      var target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      history.replaceState(null, "", href);
+    });
+  });
+
+  /* =========================================================
+     PREVENT DOUBLE-TAP ZOOM ON iOS
+     ========================================================= */
+  var lastTouch = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTouch < 350) {
+      var el = e.target && e.target.closest && e.target.closest("a, button");
+      if (el) e.preventDefault();
+    }
+    lastTouch = now;
+  }, { passive: false });
+
+})();
+</script>
+</body>
+</html>
