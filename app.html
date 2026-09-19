@@ -1223,7 +1223,7 @@ a:focus-visible, button:focus-visible {
           <div class="side-group" id="gwField" hidden>
             <div class="side-label">pick gateways <span class="comment">// order shown</span></div>
             <div class="gw-picker" id="gwPicker">
-              <label class="gw-opt"><input type="checkbox" value="clamphook" /><span>clamphook</span></label>
+              <label class="gw-opt"><input type="checkbox" value="jeevee" /><span>jeevee</span></label>
               <label class="gw-opt"><input type="checkbox" value="ambition" /><span>ambition</span></label>
               <label class="gw-opt"><input type="checkbox" value="merodoctor" /><span>merodoctor</span></label>
               <label class="gw-opt"><input type="checkbox" value="collegeinfo" /><span>collegeinfo</span></label>
@@ -1333,9 +1333,9 @@ a:focus-visible, button:focus-visible {
   var MAX_BULK = 50;
   var MAX_COUNT_SINGLE = 10;
   var MAX_COUNT_BULK = 5;
-  var GATEWAY_IDS = ["clamphook","ambition","merodoctor","collegeinfo","pariksha","quickconnect"];
+  var GATEWAY_IDS = ["jeevee","ambition","merodoctor","collegeinfo","pariksha","quickconnect"];
   var GATEWAY_LABELS = {
-    clamphook: "ClampHook",
+    jeevee: "Jeevee",
     ambition: "Ambition Guru",
     merodoctor: "MeroDoctor",
     collegeinfo: "College Info",
@@ -1408,8 +1408,6 @@ a:focus-visible, button:focus-visible {
   /* =========================================================
      HELPERS
      ========================================================= */
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   function isValidNepaliPhone(v) { return /^(98|97)\d{8}$/.test(v); }
   function pad(n, w) { n = String(n); while (n.length < w) n = "0" + n; return n; }
 
@@ -1419,7 +1417,7 @@ a:focus-visible, button:focus-visible {
            "." + pad(d.getMilliseconds(), 3);
   }
 
-  function logLine(text, kind, opts) {
+  function logLine(text, kind) {
     var line = document.createElement("div");
     line.className = "log__line" + (kind ? " log__line--" + kind : " log__line--info");
     var tsSpan = document.createElement("span");
@@ -1427,15 +1425,10 @@ a:focus-visible, button:focus-visible {
     tsSpan.textContent = "[" + nowStamp() + "]";
     var msgSpan = document.createElement("span");
     msgSpan.className = "msg";
-    if (opts && opts.html) {
-      msgSpan.innerHTML = text;
-    } else {
-      msgSpan.textContent = text;
-    }
+    msgSpan.textContent = text;
     line.appendChild(tsSpan);
     line.appendChild(msgSpan);
     termBody.appendChild(line);
-    // Auto-scroll to bottom
     termBody.scrollTop = termBody.scrollHeight;
     return line;
   }
@@ -1615,7 +1608,9 @@ a:focus-visible, button:focus-visible {
     var del = row.querySelector(".bulk-row__del");
     input.value = value || "";
     input.addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "").slice(0, 10);
+      var v = this.value.replace(/\D/g, "");
+      if (v.startsWith("977")) v = v.slice(3);
+      this.value = v.slice(0, 10);
       row.classList.toggle("invalid", this.value.length === 10 && !isValidNepaliPhone(this.value));
       syncBulkFromDOM();
     });
@@ -1759,7 +1754,9 @@ a:focus-visible, button:focus-visible {
     return ok;
   }
   phoneInput.addEventListener("input", function () {
-    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+    var v = this.value.replace(/\D/g, "");
+    if (v.startsWith("977")) v = v.slice(3);
+    this.value = v.slice(0, 10);
     if (this.value.length === 10) validatePhone();
     else { phoneRow.classList.remove("error"); phoneError.classList.remove("show"); }
   });
@@ -1845,7 +1842,7 @@ a:focus-visible, button:focus-visible {
 
     return {
       ok: !!(data && data.ok),
-      msg: data ? (data.msg || "") : "",
+      msg: data ? (data.msg || data.gateway || "") : "",
       ms: elapsed,
       status: status,
       data: data
@@ -1911,10 +1908,12 @@ a:focus-visible, button:focus-visible {
 
         if (result.ok) {
           state.stats.ok++;
+          statusOK.textContent = "ok " + state.stats.ok;
           var winnerLabel = result.msg ? " · via " + result.msg : "";
           logLine("delivered to +977" + phone + winnerLabel, "ok");
         } else {
           state.stats.fail++;
+          statusFail.textContent = "fail " + state.stats.fail;
           logLine("failed to deliver to +977" + phone + " — " + (result.msg || "unknown"), "err");
         }
 
@@ -1954,7 +1953,17 @@ a:focus-visible, button:focus-visible {
     // Terminal cursor
     var finalLine = document.createElement("div");
     finalLine.className = "log__line log__line--dim";
-    finalLine.innerHTML = '<span class="ts">[' + nowStamp() + ']</span><span class="msg">$ <span class="cursor-blink"></span></span>';
+    var ts = document.createElement("span");
+    ts.className = "ts";
+    ts.textContent = "[" + nowStamp() + "]";
+    var msg = document.createElement("span");
+    msg.className = "msg";
+    msg.textContent = "$ ";
+    var cursor = document.createElement("span");
+    cursor.className = "cursor-blink";
+    msg.appendChild(cursor);
+    finalLine.appendChild(ts);
+    finalLine.appendChild(msg);
     termBody.appendChild(finalLine);
     termBody.scrollTop = termBody.scrollHeight;
 
@@ -2011,8 +2020,15 @@ a:focus-visible, button:focus-visible {
     statusOK.textContent = "ok 0";
     statusFail.textContent = "fail 0";
 
-    // Kick off
-    runFlow(phones, state.count, state.gwMode, manualIds);
+    // Kick off (with error handling)
+    runFlow(phones, state.count, state.gwMode, manualIds).catch(function (err) {
+      logLine("fatal: " + (err && err.message ? err.message : String(err)), "err");
+      setTermStat("error", "failed");
+      setStatusMode("ERROR", "failed");
+      setControlsDisabled(false);
+      sendBtn.disabled = false;
+      sendBtnLabel.textContent = "dispatch otp";
+    });
   });
 
   /* =========================================================
